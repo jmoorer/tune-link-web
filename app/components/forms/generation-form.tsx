@@ -2,29 +2,37 @@ import { Textarea } from "../ui/textarea";
 import { genreList } from "~/lib/ontology";
 import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { ChevronDown, X } from "lucide-react";
+import { ChevronDown, LoaderCircle, X } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
 import { generationInputSchema } from "~/lib/schemas";
 import { indexBy } from "~/lib/utils";
+import { generatePlaylist } from "~/api/generate";
+import { db } from "~/db/local";
+import { FieldError } from "./field-error";
 
 const genreIndex = indexBy(genreList, (g) => g.id);
 const GenerationForm = () => {
-  const { Field, Subscribe, state } = useForm({
+  const { Field, Subscribe, handleSubmit, ...form } = useForm({
     defaultValues: {
       prompt: "",
       genres: [],
     },
     validators: {
-      onChange: generationInputSchema,
+      onSubmit: generationInputSchema,
+    },
+    onSubmitInvalid(props) {
+      console.log("invalid", props);
     },
     onSubmit: async ({ value }) => {
-      // Do something with form data
-      console.log(value);
+      const result = await generatePlaylist({ data: value });
+      console.log({ result });
+      const id = await db.playlist.add(result);
+
+      const lists = await db.playlist.toArray();
+      console.log({ lists, id });
+      form.reset();
     },
   });
-  const {
-    values: { genres },
-  } = state;
 
   return (
     <div className="space-y-4">
@@ -33,13 +41,19 @@ const GenerationForm = () => {
           <Field
             name="prompt"
             children={(field) => (
-              <Textarea
-                rows={4}
-                placeholder="Describe your playlist"
-                className="border-none shadow-none"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-              />
+              <>
+                <Textarea
+                  rows={4}
+                  placeholder="Describe your playlist"
+                  className="border-none shadow-none focus-visible:outline-none focus-visible:ring-0 resize-none"
+                  id={field.name}
+                  name={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+                <FieldError errors={field.state.meta.errors} />
+              </>
             )}
           />
         </div>
@@ -104,7 +118,15 @@ const GenerationForm = () => {
               />
             </PopoverContent>
           </Popover>
-          <Button>Generate Playlist</Button>
+          <Subscribe
+            selector={(state) => [state.canSubmit, state.isSubmitting]}
+            children={([canSubmit, isSubmitting]) => (
+              <Button onClick={handleSubmit} disabled={!canSubmit}>
+                Generate Playlist
+                {isSubmitting && <LoaderCircle className="animate-spin" />}
+              </Button>
+            )}
+          />
         </div>
       </div>
     </div>
