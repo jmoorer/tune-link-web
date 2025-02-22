@@ -11,8 +11,11 @@ const Main = React.forwardRef<HTMLElement, Props>(
       <main
         ref={ref}
         className={cn(
-          "container mx-auto px-4 sm:px-6 lg:px-8 py-8",
-          { "overflow-auto": scrollable },
+          "container mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1",
+          {
+            "overflow-auto": scrollable,
+            "overflow-hidden": !scrollable,
+          },
           className
         )}
         tabIndex={-1}

@@ -4,9 +4,9 @@ import { generateText, generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { safeValidate } from "./middleware";
 import { generationInputSchema, playlistResultSchema } from "~/lib/schemas";
-import { z } from "zod";
+import { nanoid } from "nanoid";
 const instuctions =
-  "you are to act as a music recomender. I will give you  words and you will generate a playlist. you  should convert it into the given structure as json";
+  "you are to act as a music recomender. I will give you  words and you will generate a 15 track playlist. you  should convert it into the given structure as json";
 
 export const generatePlaylist = createServerFn({ method: "POST" })
   .validator(safeValidate(generationInputSchema))
@@ -19,5 +19,8 @@ export const generatePlaylist = createServerFn({ method: "POST" })
       mode: "json",
     });
 
-    return result.object;
+    return {
+      ...result.object,
+      shortcode: nanoid(10),
+    };
   });

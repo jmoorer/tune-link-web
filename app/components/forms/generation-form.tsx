@@ -9,9 +9,11 @@ import { indexBy } from "~/lib/utils";
 import { generatePlaylist } from "~/api/generate";
 import { db } from "~/db/local";
 import { FieldError } from "./field-error";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 
 const genreIndex = indexBy(genreList, (g) => g.id);
 const GenerationForm = () => {
+  const navigate = useNavigate();
   const { Field, Subscribe, handleSubmit, ...form } = useForm({
     defaultValues: {
       prompt: "",
@@ -25,11 +27,15 @@ const GenerationForm = () => {
     },
     onSubmit: async ({ value }) => {
       const result = await generatePlaylist({ data: value });
-      console.log({ result });
+
       const id = await db.playlist.add(result);
 
       const lists = await db.playlist.toArray();
       console.log({ lists, id });
+      navigate({
+        to: "/p/$shortcode",
+        params: { shortcode: result.shortcode },
+      });
       form.reset();
     },
   });
@@ -122,7 +128,9 @@ const GenerationForm = () => {
             selector={(state) => [state.canSubmit, state.isSubmitting]}
             children={([canSubmit, isSubmitting]) => (
               <Button onClick={handleSubmit} disabled={!canSubmit}>
-                Generate Playlist
+                {isSubmitting
+                  ? "Generating your playlist..."
+                  : "Generate Playlist"}
                 {isSubmitting && <LoaderCircle className="animate-spin" />}
               </Button>
             )}

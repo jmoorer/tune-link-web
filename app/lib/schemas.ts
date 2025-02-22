@@ -8,6 +8,7 @@ export const playlistResultSchema = z.object({
   title: z.string(),
   tracks: z
     .object({
+      position: z.number({ description: "Track position" }),
       title: z.string().min(1),
       artist: z.string().min(1),
       duration: z.number().positive(),

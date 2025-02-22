@@ -5,6 +5,7 @@ import { env } from "~/env";
 
 type GeneratedPlaylist = z.infer<typeof playlistResultSchema> & {
   id: string;
+  shortcode: string;
 };
 
 const uuidAddon = (db: Dexie) => {
@@ -53,7 +54,7 @@ class AppDb extends Dexie {
   constructor() {
     super("tune-link-db", { addons: [uuidAddon] });
     this.version(env.PUBLIC_DB_VERSION).stores({
-      playlist: "id, title", // primary key "id" (for the runtime!)
+      playlist: "id,title,shortcode", // primary key "id" (for the runtime!)
     });
   }
 }
