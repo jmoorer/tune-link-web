@@ -1,29 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  ArrowLeft,
-  CircleAlertIcon,
-  ExpandIcon,
-  Loader2,
-  Pause,
-  Pen,
-  Play,
-  X,
-} from "lucide-react";
+import { CircleAlertIcon, Loader2, Pause, Play, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { getTrackMetadata } from "~/api/lookup";
+import EditForm from "~/components/forms/edit-form";
 import { Main } from "~/components/main";
 import { Button } from "~/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
 import { GeneratedPlaylist } from "~/db/local";
 import { usePlaylist } from "~/hooks/use-playlist";
+import { useToggle } from "~/hooks/use-toggle";
 import { unicodes } from "~/lib/unicodes";
 import { cn, formatMediaDuration } from "~/lib/utils";
 
@@ -36,11 +28,10 @@ const cardClass = cn("border-0 shadow-none sm:border ");
 function RouteComponent() {
   const { shortcode } = Route.useParams();
 
-  const {} = useQuery({
-    queryKey: [],
-    queryFn: async () => 0,
-  });
   const playlist = usePlaylist(shortcode);
+  const [editMode, toggleEditMode] = useToggle();
+  const mainref = useRef<HTMLElement>(null);
+
   if (!playlist) {
     return <>Not found</>;
   }
@@ -48,15 +39,30 @@ function RouteComponent() {
     (sum, track) => track.duration + sum,
     0
   );
-
   return (
-    <Main className="px-0 sm:px-8 pb-14 " scrollable>
-      <Details playlist={playlist} />
+    <Main ref={mainref} className="px-0 sm:px-8 pb-14 " scrollable>
+      {editMode ? (
+        <EditForm
+          playlist={playlist}
+          onEndEdit={() => {
+            toggleEditMode();
+            mainref.current?.scrollTo({ top: 0 });
+          }}
+        />
+      ) : (
+        <Details playlist={playlist} onEditMode={toggleEditMode} />
+      )}
     </Main>
   );
 }
 
-const Details = ({ playlist }: { playlist: GeneratedPlaylist }) => {
+const Details = ({
+  playlist,
+  onEditMode,
+}: {
+  playlist: GeneratedPlaylist;
+  onEditMode: () => void;
+}) => {
   const duration = playlist.tracks.reduce(
     (sum, track) => track.duration + sum,
     0
@@ -65,7 +71,7 @@ const Details = ({ playlist }: { playlist: GeneratedPlaylist }) => {
     useState<GeneratedPlaylist["tracks"][number]>();
   return (
     <>
-      <Card className={cardClass}>
+      <Card fullscreen>
         <CardHeader className="text-center sm:text-left relative">
           <CardTitle className="text-3xl">{playlist.title}</CardTitle>
           <CardDescription>
@@ -73,12 +79,12 @@ const Details = ({ playlist }: { playlist: GeneratedPlaylist }) => {
               {`${formatMediaDuration(duration, "full")} ${unicodes.BULLET} ${playlist.tracks.length} tracks`}
             </span>
           </CardDescription>
-          {/* <Button className="absolute top-6 right-6" variant="ghost">
-          <Pen />
-        </Button> */}
+
           <div className="flex items-center pt-6  sm:justify-start justify-center gap-2">
             <Button>Export to Service</Button>{" "}
-            <Button variant="secondary">Edit</Button>
+            <Button onClick={onEditMode} variant="secondary">
+              Edit
+            </Button>
           </div>
         </CardHeader>
 

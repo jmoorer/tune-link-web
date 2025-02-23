@@ -3,19 +3,15 @@ import * as React from "react";
 
 import { cn } from "~/lib/utils";
 
-const cardVariants = cva(
-  "rounded-xl border bg-card text-card-foreground shadow"
-);
-
-interface CardProps extends VariantProps<typeof cardVariants> {}
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+  React.HTMLAttributes<HTMLDivElement> & { fullscreen?: boolean }
+>(({ className, fullscreen, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
       "rounded-xl border bg-card text-card-foreground shadow",
+      { "border-0 shadow-none sm:border": fullscreen },
       className
     )}
     {...props}
