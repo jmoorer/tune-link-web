@@ -8,11 +8,14 @@ export const playlistResultSchema = z.object({
   title: z.string(),
   tracks: z
     .object({
+      id: z.string({
+        description: "5 digit nanoid",
+      }),
       position: z.number({ description: "Track position" }),
       title: z.string().min(1),
-      artist: z.string().min(1),
+      artist: z.string({ description: "Primary artist" }).min(1),
       featureArtist: z.string().array(),
-      duration: z.number().positive(),
+      duration: z.number({ description: "Duration in seconds" }).positive(),
     })
     .array(),
 });

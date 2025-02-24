@@ -5,7 +5,7 @@ import { cn, formatMediaDuration } from "~/lib/utils";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { FormLabel } from "./form-label";
-import { GripVerticalIcon } from "lucide-react";
+import { GripVerticalIcon, Minus, MinusCircleIcon } from "lucide-react";
 import SortableList from "../drag/SortableList";
 import { useForm } from "@tanstack/react-form";
 
@@ -17,10 +17,7 @@ interface Props {
 const EditForm = ({ playlist, onEndEdit }: Props) => {
   const { Field } = useForm({
     defaultValues: {
-      tracks: playlist.tracks.map((tr, index) => ({
-        ...tr,
-        id: tr.artist,
-      })),
+      ...playlist,
     },
   });
   return (
@@ -55,8 +52,16 @@ const EditForm = ({ playlist, onEndEdit }: Props) => {
                       });
                     }
                   }}
-                  renderItem={(track, { listeners, handleRef }) => (
+                  renderItem={(track, { listeners, handleRef }, index) => (
                     <div className="px-3 py-2 border bg-background  rounded  flex items-center gap-2">
+                      <Button
+                        onClick={() => field.removeValue(index)}
+                        variant="ghost"
+                        size="icon"
+                      >
+                        <MinusCircleIcon className="h-4 w-4" />
+                      </Button>
+
                       <div className="flex flex-col flex-1">
                         <span>{track.title}</span>
                         <span className="text-muted-foreground">

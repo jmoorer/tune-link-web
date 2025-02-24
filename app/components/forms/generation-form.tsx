@@ -128,9 +128,7 @@ const GenerationForm = () => {
             selector={(state) => [state.canSubmit, state.isSubmitting]}
             children={([canSubmit, isSubmitting]) => (
               <Button onClick={handleSubmit} disabled={!canSubmit}>
-                {isSubmitting
-                  ? "Generating your playlist..."
-                  : "Generate Playlist"}
+                {isSubmitting ? "Generating ..." : "Generate Playlist"}
                 {isSubmitting && <LoaderCircle className="animate-spin" />}
               </Button>
             )}

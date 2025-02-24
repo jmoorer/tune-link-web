@@ -1,8 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { CircleAlertIcon, Loader2, Pause, Play, X } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import {
+  CircleAlertIcon,
+  Loader2,
+  Pause,
+  Pen,
+  Play,
+  Trash,
+  X,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { getTrackMetadata } from "~/api/lookup";
+import { useConfirmation } from "~/components/dialog/confirmation";
 import EditForm from "~/components/forms/edit-form";
 import { Main } from "~/components/main";
 import { Button } from "~/components/ui/button";
@@ -13,7 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { GeneratedPlaylist } from "~/db/local";
+import { db, GeneratedPlaylist } from "~/db/local";
 import { usePlaylist } from "~/hooks/use-playlist";
 import { useToggle } from "~/hooks/use-toggle";
 import { unicodes } from "~/lib/unicodes";
@@ -24,7 +33,6 @@ export const Route = createFileRoute("/p/$shortcode")({
   // loader:({params})=>
 });
 
-const cardClass = cn("border-0 shadow-none sm:border ");
 function RouteComponent() {
   const { shortcode } = Route.useParams();
 
@@ -35,10 +43,7 @@ function RouteComponent() {
   if (!playlist) {
     return <>Not found</>;
   }
-  const duration = playlist.tracks.reduce(
-    (sum, track) => track.duration + sum,
-    0
-  );
+  console.log({ playlist });
   return (
     <Main ref={mainref} className="px-0 sm:px-8 pb-14 " scrollable>
       {editMode ? (
@@ -67,8 +72,18 @@ const Details = ({
     (sum, track) => track.duration + sum,
     0
   );
+  const navigate = useNavigate();
   const [previewTrack, setPreviewTrack] =
     useState<GeneratedPlaylist["tracks"][number]>();
+
+  const [Dialog, [, toggle]] = useConfirmation({
+    title: "Delete playlist",
+    description: "",
+    onConfirm: async () => {
+      await db.playlist.delete(playlist.id);
+      navigate({ to: "/" });
+    },
+  });
   return (
     <>
       <Card fullscreen>
@@ -83,16 +98,23 @@ const Details = ({
           <div className="flex items-center pt-6  sm:justify-start justify-center gap-2">
             <Button>Export to Service</Button>{" "}
             <Button onClick={onEditMode} variant="secondary">
+              <Pen />
               Edit
             </Button>
+            <Button onClick={toggle} variant="outline" size="icon" className="">
+              <Trash />
+            </Button>
+            <Dialog />
           </div>
         </CardHeader>
 
         <CardContent className="flex-1 ">
           <div className="  space-y-3 rounded">
             {playlist.tracks.map((track) => (
-              <div className="px-3 py-2 border bg-background  rounded  flex items-center gap-2">
-                {/* <span className="w-6">{track.position}.</span> */}
+              <div
+                key={track.id}
+                className="px-3 py-2 border bg-background  rounded  flex items-center gap-2"
+              >
                 <Button
                   onClick={() => setPreviewTrack(track)}
                   variant="ghost"
