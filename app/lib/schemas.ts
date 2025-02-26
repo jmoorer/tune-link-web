@@ -1,4 +1,7 @@
 import z from "zod";
+
+export const ProviderTypeSchema = z.enum(["spotify"]);
+export type ProviderType = z.infer<typeof ProviderTypeSchema>;
 export const generationInputSchema = z.object({
   prompt: z.string().min(3).max(300),
   genres: z.string().array(),
@@ -6,6 +9,7 @@ export const generationInputSchema = z.object({
 
 export const playlistResultSchema = z.object({
   title: z.string(),
+  description: z.string(),
   tracks: z
     .object({
       id: z.string({

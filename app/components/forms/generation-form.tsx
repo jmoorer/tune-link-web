@@ -7,7 +7,7 @@ import { useForm } from "@tanstack/react-form";
 import { generationInputSchema } from "~/lib/schemas";
 import { indexBy } from "~/lib/utils";
 import { generatePlaylist } from "~/api/generate";
-import { db } from "~/db/local";
+import { indexDb } from "~/db/appDb";
 import { FieldError } from "./field-error";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 
@@ -28,12 +28,16 @@ const GenerationForm = () => {
     onSubmit: async ({ value }) => {
       const result = await generatePlaylist({ data: value });
 
-      const id = await db.playlist.add(result);
+      const id = await indexDb.playlist.add({
+        ...result,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-      const lists = await db.playlist.toArray();
+      const lists = await indexDb.playlist.toArray();
       console.log({ lists, id });
       navigate({
-        to: "/p/$shortcode",
+        to: "/generated/$shortcode",
         params: { shortcode: result.shortcode },
       });
       form.reset();

@@ -1,5 +1,7 @@
 import { ValidatorAdapter } from "@tanstack/react-router";
 import z, { SafeParseReturnType } from "zod";
+import { createMiddleware } from "@tanstack/start";
+import { getAppSession } from "~/lib/auth";
 
 export const safeValidate = <T extends z.ZodTypeAny>(
   schema: T
@@ -20,3 +22,13 @@ export const safeValidate = <T extends z.ZodTypeAny>(
     },
   };
 };
+
+export const sessionMiddleware = createMiddleware().server(async ({ next }) => {
+  const session = await getAppSession();
+
+  return next({
+    context: {
+      userId: session.data.userId,
+    },
+  });
+});

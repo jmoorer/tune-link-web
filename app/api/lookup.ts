@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/start";
 import { safeValidate } from "./middleware";
 import { songSearchSchema } from "~/lib/schemas";
+import { z } from "zod";
 
 export const getTrackMetadata = createServerFn({ method: "POST" })
   .validator(safeValidate(songSearchSchema))
@@ -19,6 +20,36 @@ export const getTrackMetadata = createServerFn({ method: "POST" })
       },
       previewUrl: result.previewUrl,
     };
+  });
+
+function chunk<T>(array: T[], size: number): T[][] {
+  return Array.from({ length: Math.ceil(array.length / size) }, (_, i) =>
+    array.slice(i * size, (i + 1) * size)
+  );
+}
+
+export const bulkGetTrackMetadata = createServerFn({ method: "POST" })
+  .validator(safeValidate(songSearchSchema.extend({ id: z.string() }).array()))
+  .handler(async ({ data }) => {
+    const chunks = chunk(data, 10);
+    const trackMap: Record<string, ITunesSearchResult> = {};
+    for (const chunk of chunks) {
+      const results = await Promise.all(
+        chunk.map(async (tr) => {
+          const result = await searchITunesSong(tr.title, tr.artist);
+          if (result.length) {
+            return [tr.id, result[0]] as const;
+          }
+          return [tr.id, null] as const;
+        })
+      );
+      results.forEach((result) => {
+        if (result[1]) {
+          trackMap[result[0]] = result[1];
+        }
+      });
+    }
+    return trackMap;
   });
 
 interface ITunesSearchResult {

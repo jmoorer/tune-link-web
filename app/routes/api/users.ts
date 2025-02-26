@@ -1,17 +1,19 @@
-import { json } from '@tanstack/start'
-import { createAPIFileRoute } from '@tanstack/start/api'
-import axios from 'redaxios'
-import type { User } from '../../utils/users'
+import { json } from "@tanstack/start";
+import { createAPIFileRoute } from "@tanstack/start/api";
+import axios from "redaxios";
+import type { User } from "../../utils/users";
 
-export const APIRoute = createAPIFileRoute('/api/users')({
+import * as arctic from "arctic";
+
+export const APIRoute = createAPIFileRoute("/api/users")({
   GET: async ({ request }) => {
-    console.info('Fetching users... @', request.url)
+    console.info("Fetching users... @", request.url);
     const res = await axios.get<Array<User>>(
-      'https://jsonplaceholder.typicode.com/users',
-    )
+      "https://jsonplaceholder.typicode.com/users"
+    );
 
-    const list = res.data.slice(0, 10)
+    const list = res.data.slice(0, 10);
 
-    return json(list.map((u) => ({ id: u.id, name: u.name, email: u.email })))
+    return json(list.map((u) => ({ id: u.id, name: u.name, email: u.email })));
   },
-})
+});

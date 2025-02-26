@@ -74,3 +74,62 @@ export function formatMediaDuration(
       throw new Error("Invalid format specified");
   }
 }
+
+type TimeUnit = {
+  unit: Intl.RelativeTimeFormatUnit;
+  ms: number;
+};
+
+const TIME_UNITS: TimeUnit[] = [
+  { unit: "year", ms: 31536000000 }, // 365 days
+  { unit: "month", ms: 2592000000 }, // 30 days
+  { unit: "week", ms: 604800000 }, // 7 days
+  { unit: "day", ms: 86400000 }, // 24 hours
+  { unit: "hour", ms: 3600000 }, // 60 minutes
+  { unit: "minute", ms: 60000 }, // 60 seconds
+  { unit: "second", ms: 1000 }, // 1000 milliseconds
+];
+
+export const formatDateRelative = (date: Date | string) => {
+  const targetDate = new Date(date).getTime();
+  const now = Date.now();
+  const diff = targetDate - now;
+  const absDiff = Math.abs(diff);
+
+  // Handle invalid dates
+  if (isNaN(targetDate)) {
+    throw new Error("Invalid date provided");
+  }
+
+  // Initialize formatter
+  const formatter = new Intl.RelativeTimeFormat("en", {
+    numeric: "auto",
+    style: "long",
+  });
+
+  // Handle "just now" case
+  if (absDiff < 1000) {
+    return "just now";
+  }
+
+  // Find the appropriate time unit
+  const timeUnit =
+    TIME_UNITS.find((unit) => absDiff >= unit.ms) ||
+    TIME_UNITS[TIME_UNITS.length - 1];
+  const value = Math.round(diff / timeUnit.ms);
+
+  return formatter.format(value, timeUnit.unit);
+};
+
+export const timePromise = async <T>(
+  promiseFn: () => Promise<T>,
+  label?: string
+) => {
+  const start = Date.now();
+  const result = await promiseFn();
+  const end = Date.now();
+  console.groupCollapsed(`${label ?? "Promise"}`);
+  console.log(`${label ?? "Promise"} took ${end - start}ms`);
+  console.groupEnd();
+  return result;
+};

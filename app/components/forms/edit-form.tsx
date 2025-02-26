@@ -1,5 +1,5 @@
 import React from "react";
-import { GeneratedPlaylist } from "~/db/local";
+import { GeneratedPlaylist } from "~/db/appDb";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 import { cn, formatMediaDuration } from "~/lib/utils";
 import { Input } from "../ui/input";
@@ -83,11 +83,16 @@ const EditForm = ({ playlist, onEndEdit }: Props) => {
           </FormLabel>
         </CardContent>
       </Card>
-      <div className="border-t  px-6 py-2 absolute  flex items-center justify-between bg-background  bottom-0 left-0 right-0 ">
-        <Button onClick={onEndEdit} variant="secondary">
-          Cancel
-        </Button>
-        <Button>Save</Button>
+      <div
+        className="border-t '
+       py-2 absolute  bg-background  bottom-0 left-0 right-0 "
+      >
+        <div className="px-8 container mx-auto  flex items-center justify-between">
+          <Button onClick={onEndEdit} variant="secondary">
+            Cancel
+          </Button>
+          <Button>Save</Button>
+        </div>
       </div>
     </>
   );

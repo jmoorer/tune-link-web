@@ -1,0 +1,153 @@
+--------------------------------
+Model gemini: Failed to generate playlist with model AI_APICallError: The model `gemini-1.5-flash` does not exist or you do not have access to it.
+--------------------------------
+--------------------------------
+Model ollama: Failed to generate playlist with model AI_APICallError: The model `llama3.1` does not exist or you do not have access to it.
+--------------------------------
+--------------------------------
+Model groq: Failed to generate playlist with model AI_APICallError: The model `llama-3.1-70b-versatile` does not exist or you do not have access to it.
+--------------------------------
+--------------------------------
+Model anthropic: Failed to generate playlist with model AI_APICallError: The model `claude-3-5-sonnet-20240620` does not exist or you do not have access to it.
+--------------------------------
+--------------------------------
+Model openai: {
+  "title": "Hip Hop Vibes",
+  "description": "A curated playlist featuring the best of hip hop, showcasing both classic and contemporary tracks that define the genre.",
+  "tracks": [
+    {
+      "id": "1a2b3c",
+      "position": 1,
+      "title": "Sicko Mode",
+      "artist": "Travis Scott",
+      "featureArtist": [
+        "Drake"
+      ],
+      "duration": 320
+    },
+    {
+      "id": "4d5e6f",
+      "position": 2,
+      "title": "HUMBLE.",
+      "artist": "Kendrick Lamar",
+      "featureArtist": [],
+      "duration": 177
+    },
+    {
+      "id": "7g8h9i",
+      "position": 3,
+      "title": "God's Plan",
+      "artist": "Drake",
+      "featureArtist": [],
+      "duration": 198
+    },
+    {
+      "id": "0j1k2l",
+      "position": 4,
+      "title": "Juicy",
+      "artist": "The Notorious B.I.G.",
+      "featureArtist": [],
+      "duration": 320
+    },
+    {
+      "id": "3m4n5o",
+      "position": 5,
+      "title": "Suge",
+      "artist": "DaBaby",
+      "featureArtist": [],
+      "duration": 157
+    },
+    {
+      "id": "6p7q8r",
+      "position": 6,
+      "title": "Bodak Yellow",
+      "artist": "Cardi B",
+      "featureArtist": [],
+      "duration": 215
+    },
+    {
+      "id": "9s0t1u",
+      "position": 7,
+      "title": "Old Town Road",
+      "artist": "Lil Nas X",
+      "featureArtist": [
+        "Billy Ray Cyrus"
+      ],
+      "duration": 157
+    },
+    {
+      "id": "2v3w4x",
+      "position": 8,
+      "title": "In Da Club",
+      "artist": "50 Cent",
+      "featureArtist": [],
+      "duration": 259
+    },
+    {
+      "id": "5y6z7a",
+      "position": 9,
+      "title": "Empire State of Mind",
+      "artist": "Jay-Z",
+      "featureArtist": [
+        "Alicia Keys"
+      ],
+      "duration": 276
+    },
+    {
+      "id": "8b9c0d",
+      "position": 10,
+      "title": "All of the Lights",
+      "artist": "Kanye West",
+      "featureArtist": [
+        "Rihanna",
+        "Kid Cudi"
+      ],
+      "duration": 300
+    },
+    {
+      "id": "1e2f3g",
+      "position": 11,
+      "title": "Hotline Bling",
+      "artist": "Drake",
+      "featureArtist": [],
+      "duration": 263
+    },
+    {
+      "id": "4h5i6j",
+      "position": 12,
+      "title": "Money Trees",
+      "artist": "Kendrick Lamar",
+      "featureArtist": [
+        "Jay Rock"
+      ],
+      "duration": 233
+    },
+    {
+      "id": "7k8l9m",
+      "position": 13,
+      "title": "The Box",
+      "artist": "Roddy Ricch",
+      "featureArtist": [],
+      "duration": 194
+    },
+    {
+      "id": "0n1o2p",
+      "position": 14,
+      "title": "Goosebumps",
+      "artist": "Travis Scott",
+      "featureArtist": [
+        "HVME"
+      ],
+      "duration": 210
+    },
+    {
+      "id": "3q4r5s",
+      "position": 15,
+      "title": "N.Y. State of Mind",
+      "artist": "Nas",
+      "featureArtist": [],
+      "duration": 240
+    }
+  ]
+}
+--------------------------------

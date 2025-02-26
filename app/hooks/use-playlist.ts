@@ -1,9 +1,9 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "~/db/local";
+import { indexDb } from "~/db/appDb";
 
 export const usePlaylist = (shortcode: string) => {
   return useLiveQuery(async () => {
-    const playlist = await db.playlist.get({
+    const playlist = await indexDb.playlist.get({
       shortcode,
     });
 

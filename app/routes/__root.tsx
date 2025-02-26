@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import * as React from "react";
+import { getCurrentUser } from "~/api/auth";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NavBar } from "~/components/navbar";
 import { NotFound } from "~/components/NotFound";
@@ -65,6 +66,7 @@ export const Route = createRootRouteWithContext<{
     );
   },
   notFoundComponent: () => <NotFound />,
+  loader: ({}) => getCurrentUser(),
   component: RootComponent,
 });
 
@@ -77,15 +79,16 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const user = Route.useLoaderData();
   return (
     <html>
       <head>
         <HeadContent />
       </head>
       <body className="h-screen flex flex-col">
-        <NavBar />
+        <NavBar user={user} />
+        <div className="flex-1 flex flex-col overflow-y-auto">{children}</div>
 
-        {children}
         {/* <TanStackRouterDevtools position="bottom-right" /> */}
         <Toaster />
         <Scripts />

@@ -12,7 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
-import { Route as PShortcodeImport } from './routes/p.$shortcode'
+import { Route as GeneratedShortcodeImport } from './routes/generated.$shortcode'
 
 // Create/Update Routes
 
@@ -22,9 +22,9 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const PShortcodeRoute = PShortcodeImport.update({
-  id: '/p/$shortcode',
-  path: '/p/$shortcode',
+const GeneratedShortcodeRoute = GeneratedShortcodeImport.update({
+  id: '/generated/$shortcode',
+  path: '/generated/$shortcode',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -39,11 +39,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/p/$shortcode': {
-      id: '/p/$shortcode'
-      path: '/p/$shortcode'
-      fullPath: '/p/$shortcode'
-      preLoaderRoute: typeof PShortcodeImport
+    '/generated/$shortcode': {
+      id: '/generated/$shortcode'
+      path: '/generated/$shortcode'
+      fullPath: '/generated/$shortcode'
+      preLoaderRoute: typeof GeneratedShortcodeImport
       parentRoute: typeof rootRoute
     }
   }
@@ -53,37 +53,37 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/p/$shortcode': typeof PShortcodeRoute
+  '/generated/$shortcode': typeof GeneratedShortcodeRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/p/$shortcode': typeof PShortcodeRoute
+  '/generated/$shortcode': typeof GeneratedShortcodeRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/p/$shortcode': typeof PShortcodeRoute
+  '/generated/$shortcode': typeof GeneratedShortcodeRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/p/$shortcode'
+  fullPaths: '/' | '/generated/$shortcode'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/p/$shortcode'
-  id: '__root__' | '/' | '/p/$shortcode'
+  to: '/' | '/generated/$shortcode'
+  id: '__root__' | '/' | '/generated/$shortcode'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  PShortcodeRoute: typeof PShortcodeRoute
+  GeneratedShortcodeRoute: typeof GeneratedShortcodeRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  PShortcodeRoute: PShortcodeRoute,
+  GeneratedShortcodeRoute: GeneratedShortcodeRoute,
 }
 
 export const routeTree = rootRoute
@@ -97,14 +97,14 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/p/$shortcode"
+        "/generated/$shortcode"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/p/$shortcode": {
-      "filePath": "p.$shortcode.tsx"
+    "/generated/$shortcode": {
+      "filePath": "generated.$shortcode.tsx"
     }
   }
 }
