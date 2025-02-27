@@ -37,14 +37,19 @@ import { useAppUser } from "~/hooks/useAppUser";
 import { unicodes } from "~/lib/unicodes";
 import { cn, formatMediaDuration } from "~/lib/utils";
 import { Badge } from "~/components/ui/badge";
+import {
+  AudioProvider,
+  useAudioState,
+  useAudioDispatch,
+  AudioTrack,
+} from "~/context/audio-context";
+
 export const Route = createFileRoute("/generated/$shortcode")({
   component: RouteComponent,
   loader: async ({ params, parentMatchPromise }) => {},
 });
 
 function RouteComponent() {
-  const user = useAppUser();
-  console.log("user", { user });
   const { shortcode } = Route.useParams();
 
   const playlist = usePlaylist(shortcode);
@@ -54,7 +59,6 @@ function RouteComponent() {
   if (!playlist) {
     return <>Not found</>;
   }
-  console.log({ playlist });
   return (
     <Main ref={mainref} className="px-0 sm:px-8 pb-14 ">
       {editMode ? (
@@ -66,7 +70,9 @@ function RouteComponent() {
           }}
         />
       ) : (
-        <Details playlist={playlist} onEditMode={toggleEditMode} />
+        <AudioProvider>
+          <Details playlist={playlist} onEditMode={toggleEditMode} />
+        </AudioProvider>
       )}
     </Main>
   );
@@ -91,8 +97,6 @@ const Details = ({
       }),
   });
   const navigate = useNavigate();
-  const [previewTrack, setPreviewTrack] =
-    useState<GeneratedPlaylist["tracks"][number]>();
 
   const [Dialog, [, toggle]] = useConfirmation({
     title: "Delete playlist",
@@ -106,6 +110,9 @@ const Details = ({
 
   const user = useAppUser();
   console.log({ trackMap });
+
+  const state = useAudioState();
+  const actions = useAudioDispatch();
   return (
     <>
       <Card fullscreen>
@@ -131,10 +138,10 @@ const Details = ({
               </span>
               <div className="flex items-center pt-6  sm:justify-start justify-center gap-2">
                 {user ? (
-                  <Button>Export to Service</Button>
+                  <Button>Save to Spotify</Button>
                 ) : (
                   <Button>
-                    <LogInIcon /> Login to Export
+                    <LogInIcon /> Login to Save
                   </Button>
                 )}
                 <Button onClick={onEditMode} variant="secondary">
@@ -157,9 +164,9 @@ const Details = ({
 
           {!user && (
             <Alert variant="info">
-              <AlertTitle>Login to Export</AlertTitle>
+              <AlertTitle>Login to Save</AlertTitle>
               <AlertDescription>
-                Login to export your playlist to your favorite music service.
+                Login to save your playlist to your streaming service.
               </AlertDescription>
             </Alert>
           )}
@@ -172,6 +179,8 @@ const Details = ({
                 key={track.id}
                 className="px-3 py-2 border bg-background  rounded  flex items-center gap-2"
               >
+                <PlayButton track={track} />
+
                 <img
                   src={
                     trackMap?.[track.id]?.artworkUrl100 ??
@@ -181,13 +190,6 @@ const Details = ({
                   alt={track.title}
                 />
 
-                <Button
-                  onClick={() => setPreviewTrack(track)}
-                  variant="ghost"
-                  size="icon"
-                >
-                  <Play />
-                </Button>
                 <div className="flex flex-col flex-1">
                   <span>{track.title}</span>
                   <span className="text-muted-foreground">{track.artist}</span>
@@ -201,125 +203,90 @@ const Details = ({
           </div>
         </CardContent>
       </Card>
-      {previewTrack && (
-        <PreviewButtonPlayer
-          onClose={() => setPreviewTrack(undefined)}
-          track={previewTrack}
-        />
-      )}
+      {state.track && <PreviewPlayer />}
     </>
   );
 };
+const PlayButton = ({ track }: { track: AudioTrack }) => {
+  const state = useAudioState();
+  const actions = useAudioDispatch();
 
-const PreviewButtonPlayer = ({
-  track,
-  onClose,
-}: {
-  track: GeneratedPlaylist["tracks"][number];
-  onClose: () => void;
-}) => {
-  const { data, isLoading, error } = useQuery({
-    queryKey: [track.title, track.artist],
-    queryFn: async () =>
-      getTrackMetadata({
-        data: {
-          title: track.title,
-          artist: track.artist,
-        },
-      }),
-    retry: false,
-    meta: { errorMessage: "Failed to load preview" },
-  });
-
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    const loadAudio = async () => {
-      if (
-        audioRef.current &&
-        !!data &&
-        audioRef.current.src != data.previewUrl
-      ) {
-        audioRef.current.src = data.previewUrl;
-        audioRef.current.load(); // Preload the audio
-        audioRef.current.addEventListener(
-          "loadeddata",
-          () => {
-            togglePlay();
-          },
-          {
-            signal: controller.signal,
-          }
-        );
-      }
-    };
-
-    loadAudio();
-    return () => {
-      controller.abort();
-    };
-  }, [data]);
-
-  console.log({ error, isLoading, data });
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    const controller = new AbortController();
-    audio.addEventListener("timeupdate", () => {}, {
-      signal: controller.signal,
-    });
-    audio.addEventListener("loadedmetadata", () => {}, {});
-    audio.addEventListener(
-      "ended",
-      () => {
-        setIsPlaying(false);
-      },
-      {
-        signal: controller.signal,
-      }
-    );
-    audio.addEventListener("error", () => {});
-    return () => controller.abort();
-  }, []);
+  return (
+    <Button
+      onClick={() => {
+        if (state.isLoading) return;
+        if (state.track?.id === track.id) {
+          state.isPlaying ? actions.pause() : actions.play();
+        } else {
+          actions.setTrack({
+            ...track,
+          });
+        }
+      }}
+      variant="outline"
+      size="icon"
+      className={cn(
+        "rounded-full border-2",
+        state.track?.id === track.id && "border-primary text-primary"
+      )}
+    >
+      {state.isLoading && track.id === state.track?.id ? (
+        <Loader2 className="animate-spin" />
+      ) : state.track?.id === track.id && state.isPlaying ? (
+        <Pause />
+      ) : (
+        <Play />
+      )}
+    </Button>
+  );
+};
+const PreviewPlayer = () => {
+  const { isPlaying, track, isLoading, error } = useAudioState();
+  const actions = useAudioDispatch();
 
   const togglePlay = async () => {
-    if (!audioRef.current) return;
-
     try {
       if (isPlaying) {
-        audioRef.current.pause();
+        actions.pause();
       } else {
-        await audioRef.current.play();
+        actions.play();
       }
-      setIsPlaying(!isPlaying);
     } catch (err) {
       console.log(err);
     }
   };
 
-  return (
-    <div className="border-t  px-6 py-2 absolute  flex items-center justify-between bg-background  bottom-0 left-0 right-0 ">
-      <audio ref={audioRef} preload="metadata" />
-      <div className="flex flex-col flex-1">
-        <span> {track.title}</span>
-        <span> {track.artist}</span>
-      </div>
-      {isLoading && <Loader2 className="animate-spin" />}
-      {error && <CircleAlertIcon className=" text-destructive" />}
+  if (!track) return null;
 
-      {data?.previewUrl && (
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50  border-t bg-background/90 backdrop-blur-sm">
+      <div className=" container mx-auto px-2 py-2  gap-2  flex items-center justify-between  ">
+        <img
+          src={track.artwork ?? "https://via.placeholder.com/150"}
+          className="w-10 h-10 rounded-md"
+          alt={track.title}
+        />
+        <div className="flex flex-col flex-1">
+          <span> {track.title}</span>
+          <span> {track.artist}</span>
+        </div>
+        {isLoading && <Loader2 className="animate-spin" />}
+        {error && <CircleAlertIcon className=" text-destructive" />}
+
         <div>
           <Button onClick={togglePlay} variant="ghost" size="icon">
             {isPlaying ? <Pause /> : <Play />}
           </Button>
         </div>
-      )}
-      <Button onClick={onClose} variant="ghost" size="icon">
-        <X className="h-4 w-4" />
-      </Button>
+
+        <Button
+          onClick={() => actions.setTrack(null)}
+          variant="ghost"
+          size="icon"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 };

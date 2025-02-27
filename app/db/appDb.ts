@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
-import { playlistResultSchema } from "~/lib/schemas";
+import { playlistResultSchema } from "~/lib/validators";
 import { z } from "zod";
 import { env } from "~/env";
 

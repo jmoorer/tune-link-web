@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/start";
 import { safeValidate } from "./middleware";
-import { songSearchSchema } from "~/lib/schemas";
+import { songSearchSchema } from "~/lib/validators";
 import { z } from "zod";
 
 export const getTrackMetadata = createServerFn({ method: "POST" })

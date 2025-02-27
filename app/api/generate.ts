@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/start";
 import { generateText, generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { safeValidate } from "./middleware";
-import { generationInputSchema, playlistResultSchema } from "~/lib/schemas";
+import { generationInputSchema, playlistResultSchema } from "~/lib/validators";
 import { nanoid } from "nanoid";
 import { timePromise } from "~/lib/utils";
 import fs from "fs";

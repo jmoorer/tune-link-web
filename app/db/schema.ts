@@ -6,7 +6,7 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
-import { ProviderTypeSchema } from "~/lib/schemas";
+import { ProviderTypeSchema } from "~/lib/validators";
 
 export const providerEnum = pgEnum("provider", ["spotify"]);
 
@@ -34,7 +34,7 @@ export const userProviderTable = pgTable("user_providers", {
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
   providerId: varchar("provider_id", { length: 255 }).notNull(),
-  provider: providerEnum(),
+  provider: providerEnum("provider").notNull(),
   accessToken: text("access_token").notNull(),
   refreshToken: text("refresh_token"),
   tokenExpiresAt: timestamp("token_expires_at"),

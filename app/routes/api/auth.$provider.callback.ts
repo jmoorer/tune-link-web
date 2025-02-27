@@ -15,7 +15,7 @@ import {
   STATE_KEY,
   VERIFIER_KEY,
 } from "~/lib/auth";
-import { ProviderType, ProviderTypeSchema } from "~/lib/schemas";
+import { ProviderType, ProviderTypeSchema } from "~/lib/validators";
 type Profile = {
   id: string;
   provider: ProviderType;

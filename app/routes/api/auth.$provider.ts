@@ -10,7 +10,7 @@ import {
   VERIFIER_KEY,
   spotifyAuth,
 } from "~/lib/auth";
-import { ProviderTypeSchema } from "~/lib/schemas";
+import { ProviderTypeSchema } from "~/lib/validators";
 
 export const APIRoute = createAPIFileRoute("/api/auth/$provider")({
   GET: async ({ request, params }) => {

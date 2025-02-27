@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { ChevronDown, LoaderCircle, X } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
-import { generationInputSchema } from "~/lib/schemas";
+import { generationInputSchema } from "~/lib/validators";
 import { indexBy } from "~/lib/utils";
 import { generatePlaylist } from "~/api/generate";
 import { indexDb } from "~/db/appDb";

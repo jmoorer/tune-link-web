@@ -83,6 +83,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html>
       <head>
+        {/* <script src="https://unpkg.com/react-scan/dist/auto.global.js" /> */}
+
         <HeadContent />
       </head>
       <body className="h-screen flex flex-col">
