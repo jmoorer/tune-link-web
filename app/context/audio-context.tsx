@@ -10,22 +10,13 @@ import {
 } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getTrackMetadata } from "~/api/lookup";
-import { trace } from "console";
-
-export type AudioTrack = {
-  id: string;
-  title: string;
-  artist: string;
-  duration: number;
-
-  artwork?: string;
-};
+import { EnrichedTrack } from "~/lib/types";
 
 type AudioState = {
-  track: AudioTrack | null;
+  track: EnrichedTrack | null;
   isPlaying: boolean;
-  isLoading: boolean;
-  error: string | null;
+  // isLoading: boolean;
+  // error: string | null;
 };
 
 const AudioStateContext = createContext<AudioState | null>(null);
@@ -34,7 +25,7 @@ const AudioDispatchContext = createContext<ActionDispatch<
 > | null>(null);
 
 type AudioActions =
-  | { type: "setTrack"; payload: AudioTrack | null }
+  | { type: "setTrack"; payload: EnrichedTrack | null }
   | { type: "play" }
   | { type: "pause" };
 
@@ -45,7 +36,7 @@ const audioReducer = (
   console.log("action", action);
   switch (action.type) {
     case "setTrack":
-      return { ...state, track: action.payload };
+      return { ...state, track: action.payload, isPlaying: false };
     case "play":
       return { ...state, isPlaying: true };
     case "pause":
@@ -69,7 +60,7 @@ function useAudioDispatch() {
   const play = useCallback(() => dispatch({ type: "play" }), [dispatch]);
   const pause = useCallback(() => dispatch({ type: "pause" }), [dispatch]);
   const setTrack = useCallback(
-    (track: AudioTrack | null) =>
+    (track: EnrichedTrack | null) =>
       dispatch({ type: "setTrack", payload: track }),
     [dispatch]
   );
@@ -79,28 +70,30 @@ const AudioProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(audioReducer, {
     track: null,
     isPlaying: false,
-    error: null,
+    // isLoading: false,
   });
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["preview", state.track?.id] as const,
-    queryFn: async () =>
-      getTrackMetadata({
-        data: {
-          title: state.track!.title,
-          artist: state.track!.artist,
-        },
-      }),
-    retry: false,
-    enabled: !!state.track,
-    meta: { errorMessage: "Failed to load preview" },
-  });
+  // const { data, isLoading, error } = useQuery({
+  //   queryKey: ["preview", state.track?.id] as const,
+  //   queryFn: async () =>
+  //     getTrackMetadata({
+  //       data: {
+  //         title: state.track!.title,
+  //         artist: state.track!.artist,
+  //       },
+  //     }),
+  //   retry: false,
+  //   enabled: !!state.track,
+  //   meta: { errorMessage: "Failed to load preview" },
+  // });
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+
+    if (!state.track?.previewUrl) return;
     const controller = new AbortController();
     audio.addEventListener(
       "loadeddata",
@@ -111,25 +104,25 @@ const AudioProvider = ({ children }: { children: React.ReactNode }) => {
         signal: controller.signal,
       }
     );
-    if (data?.previewUrl && audio.src != data.previewUrl) {
-      audio.src = data.previewUrl;
+    if (state.track?.previewUrl && audio.src != state.track.previewUrl) {
+      audio.src = state.track.previewUrl;
       audio.load();
     }
     return () => controller.abort();
-  }, [data?.previewUrl]);
+  }, [state.track]);
 
-  const stateValue = useMemo(
-    () => ({ ...state, isLoading, error: error?.message ?? null }),
-    [state, isLoading, error]
-  );
+  // const stateValue = useMemo(
+  //   () => ({ ...state, isLoading, error: error?.message ?? null }),
+  //   [state, isLoading, error]
+  // );
   useEffect(() => {
-    console.log("playback effect", stateValue);
+    console.log("playback effect", state);
     const audio = audioRef.current;
     if (!audio) return;
 
     const handlePlayError = async () => {
       try {
-        if (stateValue.isPlaying) {
+        if (state.isPlaying) {
           await audio.play();
         } else {
           audio.pause();
@@ -141,10 +134,10 @@ const AudioProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     handlePlayError();
-  }, [stateValue.isPlaying, data?.previewUrl]);
+  }, [state.isPlaying, state.track?.previewUrl]);
 
   return (
-    <AudioStateContext.Provider value={stateValue}>
+    <AudioStateContext.Provider value={state}>
       <AudioDispatchContext.Provider value={dispatch}>
         {children}
         {state.track && <audio ref={audioRef} />}

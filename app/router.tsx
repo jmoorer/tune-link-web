@@ -14,9 +14,9 @@ import { toast } from "sonner";
 export function createRouter() {
   const queryClient: QueryClient = new QueryClient({
     defaultOptions: {
-      // queries: {
-      //   refetchOnReconnect: () => !queryClient.isMutating(),
-      // },
+      queries: {
+        refetchOnReconnect: () => !queryClient.isMutating(),
+      },
     },
     queryCache: new QueryCache({
       onError: (error, query: any) => {
@@ -26,15 +26,10 @@ export function createRouter() {
       },
     }),
     mutationCache: new MutationCache({
-      onError: (error, query: any) => {
-        if (query.meta.errorMessage) {
-          toast.error(query.meta.errorMessage);
+      onError: (error, _, __, mutation) => {
+        if (mutation?.meta?.errorMessage) {
+          toast.error(mutation.meta.errorMessage as string);
         }
-      },
-      onSettled: () => {
-        // if (queryClient.isMutating() === 1) {
-        //   return queryClient.invalidateQueries();
-        // }
       },
     }),
   });

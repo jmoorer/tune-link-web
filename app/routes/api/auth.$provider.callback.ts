@@ -6,16 +6,17 @@ import { and, eq } from "drizzle-orm";
 import { db } from "~/db";
 import { userProviderTable, usersTable } from "~/db/schema";
 import {
-  generateCodeVerifier,
   getAppSession,
   RETURN_URL_KEY,
-  spotifyAuth,
-  spotifyFetcher,
-  SpotifyUser,
   STATE_KEY,
   VERIFIER_KEY,
 } from "~/lib/auth";
-import { ProviderType, ProviderTypeSchema } from "~/lib/validators";
+import { SpotifyUser } from "~/lib/integrations/spotify";
+import { spotifyAuth } from "~/lib/integrations/spotify";
+import { spotifyFetcher } from "~/lib/integrations/spotify";
+import { providerTypeSchema } from "~/lib/validators";
+import { ProviderType } from "~/lib/types";
+
 type Profile = {
   id: string;
   provider: ProviderType;
@@ -26,7 +27,7 @@ type Profile = {
 
 export const APIRoute = createAPIFileRoute("/api/auth/$provider/callback")({
   GET: async ({ request, params }) => {
-    const parsed = ProviderTypeSchema.safeParse(params.provider);
+    const parsed = providerTypeSchema.safeParse(params.provider);
     if (!parsed.success) {
       throw new Error("Provider no supported");
     }

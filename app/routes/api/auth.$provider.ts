@@ -2,19 +2,19 @@ import { json } from "@tanstack/start";
 import { setCookie } from "@tanstack/start/server";
 import { createAPIFileRoute } from "@tanstack/start/api";
 import {
-  generateCodeVerifier,
-  generateState,
   getAppSession,
   RETURN_URL_KEY,
   STATE_KEY,
   VERIFIER_KEY,
-  spotifyAuth,
 } from "~/lib/auth";
-import { ProviderTypeSchema } from "~/lib/validators";
+import { generateCodeVerifier } from "arctic";
+import { generateState } from "arctic";
+import { spotifyAuth } from "~/lib/integrations/spotify";
+import { providerTypeSchema } from "~/lib/validators";
 
 export const APIRoute = createAPIFileRoute("/api/auth/$provider")({
   GET: async ({ request, params }) => {
-    const parsed = ProviderTypeSchema.safeParse(params.provider);
+    const parsed = providerTypeSchema.safeParse(params.provider);
     if (!parsed.success) {
       throw new Error("Provider not supported");
     }

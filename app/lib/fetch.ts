@@ -8,7 +8,7 @@ export const createFetcher = (baseUrl: string) => {
       query,
       options,
     }: {
-      token: string;
+      token?: string;
       method: "GET" | "POST" | "PUT" | "DELETE";
 
       body?: any;
@@ -27,34 +27,36 @@ export const createFetcher = (baseUrl: string) => {
         ...options,
         method,
         body: body ? JSON.stringify(body) : undefined,
-        headers: {
-          ...options?.headers,
-          Authorization: `Bearer ${token}`,
-        },
+        headers: token
+          ? {
+              ...options?.headers,
+              Authorization: `Bearer ${token}`,
+            }
+          : options?.headers,
       });
 
       if (!response.ok) {
-        console.log(
-          "failed response:",
-          JSON.stringify(
-            {
-              url,
-              method,
-              body,
-              headers: options?.headers,
-              response: await response.text(),
-            },
-            null,
-            2
-          )
-        );
+        // console.log(
+        //   "failed response:",
+        //   JSON.stringify(
+        //     {
+        //       url,
+        //       method,
+        //       body,
+        //       headers: options?.headers,
+        //       response: await response.text(),
+        //     },
+        //     null,
+        //     2
+        //   )
+        // );
         throw new HTTPError(
           `HTTP error! status: ${response.status}`,
           response.status
         );
       }
       const data = await response.json();
-      console.log("response data", data);
+
       return data as T;
     } catch (error) {
       console.error(error);

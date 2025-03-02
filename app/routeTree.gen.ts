@@ -12,7 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
-import { Route as GeneratedShortcodeImport } from './routes/generated.$shortcode'
+import { Route as PlaylistShortcodeImport } from './routes/playlist.$shortcode'
 
 // Create/Update Routes
 
@@ -22,9 +22,9 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const GeneratedShortcodeRoute = GeneratedShortcodeImport.update({
-  id: '/generated/$shortcode',
-  path: '/generated/$shortcode',
+const PlaylistShortcodeRoute = PlaylistShortcodeImport.update({
+  id: '/playlist/$shortcode',
+  path: '/playlist/$shortcode',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -39,11 +39,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/generated/$shortcode': {
-      id: '/generated/$shortcode'
-      path: '/generated/$shortcode'
-      fullPath: '/generated/$shortcode'
-      preLoaderRoute: typeof GeneratedShortcodeImport
+    '/playlist/$shortcode': {
+      id: '/playlist/$shortcode'
+      path: '/playlist/$shortcode'
+      fullPath: '/playlist/$shortcode'
+      preLoaderRoute: typeof PlaylistShortcodeImport
       parentRoute: typeof rootRoute
     }
   }
@@ -53,37 +53,37 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/generated/$shortcode': typeof GeneratedShortcodeRoute
+  '/playlist/$shortcode': typeof PlaylistShortcodeRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/generated/$shortcode': typeof GeneratedShortcodeRoute
+  '/playlist/$shortcode': typeof PlaylistShortcodeRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/generated/$shortcode': typeof GeneratedShortcodeRoute
+  '/playlist/$shortcode': typeof PlaylistShortcodeRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/generated/$shortcode'
+  fullPaths: '/' | '/playlist/$shortcode'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/generated/$shortcode'
-  id: '__root__' | '/' | '/generated/$shortcode'
+  to: '/' | '/playlist/$shortcode'
+  id: '__root__' | '/' | '/playlist/$shortcode'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  GeneratedShortcodeRoute: typeof GeneratedShortcodeRoute
+  PlaylistShortcodeRoute: typeof PlaylistShortcodeRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  GeneratedShortcodeRoute: GeneratedShortcodeRoute,
+  PlaylistShortcodeRoute: PlaylistShortcodeRoute,
 }
 
 export const routeTree = rootRoute
@@ -97,14 +97,14 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/generated/$shortcode"
+        "/playlist/$shortcode"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/generated/$shortcode": {
-      "filePath": "generated.$shortcode.tsx"
+    "/playlist/$shortcode": {
+      "filePath": "playlist.$shortcode.tsx"
     }
   }
 }

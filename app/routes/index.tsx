@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Music2 } from "lucide-react";
@@ -10,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { indexDb } from "~/db/appDb";
+import { getRecentPlaylists } from "~/api/playlist";
 import { formatDateRelative } from "~/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -18,9 +19,10 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  const recent = useLiveQuery(() =>
-    indexDb.playlist.orderBy("updatedAt").reverse().limit(10).toArray()
-  );
+  const { data: recent } = useQuery({
+    queryKey: ["recent-playlists"],
+    queryFn: () => getRecentPlaylists(),
+  });
   return (
     <Main className=" py-10 space-y-4">
       <div className="w-full max-w-2xl space-y-4 mx-auto">
@@ -39,7 +41,7 @@ function Home() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {recent?.map((pl) => (
                 <Link
-                  to={"/generated/$shortcode"}
+                  to={"/playlist/$shortcode"}
                   params={{ shortcode: pl.shortcode }}
                 >
                   <Card>

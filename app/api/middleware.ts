@@ -25,10 +25,18 @@ export const safeValidate = <T extends z.ZodTypeAny>(
 
 export const sessionMiddleware = createMiddleware().server(async ({ next }) => {
   const session = await getAppSession();
-
+  const owner = session.data.userId
+    ? {
+        type: "user" as const,
+        userId: session.data.userId,
+      }
+    : {
+        type: "guest" as const,
+        guestId: session.id ?? "",
+      };
   return next({
     context: {
-      userId: session.data.userId,
+      owner,
     },
   });
 });

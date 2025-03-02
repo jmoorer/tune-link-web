@@ -1,5 +1,4 @@
 import React from "react";
-import { GeneratedPlaylist } from "~/db/appDb";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 import { cn, formatMediaDuration } from "~/lib/utils";
 import { Input } from "../ui/input";
@@ -8,9 +7,9 @@ import { FormLabel } from "./form-label";
 import { GripVerticalIcon, Minus, MinusCircleIcon } from "lucide-react";
 import SortableList from "../drag/SortableList";
 import { useForm } from "@tanstack/react-form";
-
+import { PlaylistDetails } from "~/lib/types";
 interface Props {
-  playlist: GeneratedPlaylist;
+  playlist: PlaylistDetails;
   onEndEdit: () => void;
 }
 

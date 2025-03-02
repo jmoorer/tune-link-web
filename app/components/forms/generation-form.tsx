@@ -10,10 +10,19 @@ import { generatePlaylist } from "~/api/generate";
 import { indexDb } from "~/db/appDb";
 import { FieldError } from "./field-error";
 import { useNavigate, useRouter } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
+import { GenerationParams } from "~/lib/types";
 
 const genreIndex = indexBy(genreList, (g) => g.id);
+
 const GenerationForm = () => {
-  const navigate = useNavigate();
+  const generatePlaylistMutation = useMutation({
+    mutationFn: (data: GenerationParams) => generatePlaylist({ data }),
+    onSuccess: () => {
+      form.reset();
+    },
+  });
+
   const { Field, Subscribe, handleSubmit, ...form } = useForm({
     defaultValues: {
       prompt: "",
@@ -25,23 +34,7 @@ const GenerationForm = () => {
     onSubmitInvalid(props) {
       console.log("invalid", props);
     },
-    onSubmit: async ({ value }) => {
-      const result = await generatePlaylist({ data: value });
-
-      const id = await indexDb.playlist.add({
-        ...result,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      const lists = await indexDb.playlist.toArray();
-      console.log({ lists, id });
-      navigate({
-        to: "/generated/$shortcode",
-        params: { shortcode: result.shortcode },
-      });
-      form.reset();
-    },
+    onSubmit: ({ value }) => generatePlaylistMutation.mutateAsync(value),
   });
 
   return (

@@ -5,7 +5,10 @@ import { eq } from "drizzle-orm";
 import { usersTable, userProviderTable } from "~/db/schema";
 export const getCurrentUser = createServerFn({})
   .middleware([sessionMiddleware])
-  .handler(async ({ context: { userId } }) => {
+  .handler(async ({ context: { owner } }) => {
+    if (!owner.userId) {
+      return;
+    }
     const userRow = await db
       .select({
         id: usersTable.id,
@@ -14,7 +17,7 @@ export const getCurrentUser = createServerFn({})
         provider: userProviderTable.provider,
       })
       .from(usersTable)
-      .where(eq(usersTable.id, userId))
+      .where(eq(usersTable.id, owner.userId))
       .innerJoin(
         userProviderTable,
         eq(userProviderTable.userId, usersTable.id)

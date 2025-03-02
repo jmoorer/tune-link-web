@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   createFileRoute,
   getRouteApi,
@@ -17,7 +17,6 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { bulkGetTrackMetadata, getTrackMetadata } from "~/api/lookup";
 import { useConfirmation } from "~/components/dialog/confirmation";
 import EditForm from "~/components/forms/edit-form";
 import { Main } from "~/components/main";
@@ -41,24 +40,22 @@ import {
   AudioProvider,
   useAudioState,
   useAudioDispatch,
-  AudioTrack,
 } from "~/context/audio-context";
+import { EnrichedTrack, PlaylistDetails } from "~/lib/types";
+import { getPlaylistByShortcode, deletePlaylist } from "~/api/playlist";
 
-export const Route = createFileRoute("/generated/$shortcode")({
+export const Route = createFileRoute("/playlist/$shortcode")({
   component: RouteComponent,
-  loader: async ({ params, parentMatchPromise }) => {},
+  loader: async ({ params }) =>
+    getPlaylistByShortcode({ data: { shortcode: params.shortcode } }),
 });
 
 function RouteComponent() {
-  const { shortcode } = Route.useParams();
+  const playlist = Route.useLoaderData();
 
-  const playlist = usePlaylist(shortcode);
   const [editMode, toggleEditMode] = useToggle();
   const mainref = useRef<HTMLElement>(null);
 
-  if (!playlist) {
-    return <>Not found</>;
-  }
   return (
     <Main ref={mainref} className="px-0 sm:px-8 pb-14 ">
       {editMode ? (
@@ -82,34 +79,37 @@ const Details = ({
   playlist,
   onEditMode,
 }: {
-  playlist: GeneratedPlaylist;
+  playlist: PlaylistDetails;
   onEditMode: () => void;
 }) => {
   const duration = playlist.tracks.reduce(
     (sum, track) => track.duration + sum,
     0
   );
-  const { data: trackMap } = useQuery({
-    queryKey: ["trackMap", playlist?.id],
-    queryFn: async () =>
-      bulkGetTrackMetadata({
-        data: playlist?.tracks ?? [],
-      }),
-  });
+
   const navigate = useNavigate();
+
+  const deletePlaylistMutation = useMutation({
+    mutationFn: () =>
+      deletePlaylist({ data: { shortcode: playlist.shortcode } }),
+    onSuccess: () => {
+      navigate({ to: "/" });
+    },
+    meta: {
+      errorMessage: "Failed to delete playlist",
+    },
+  });
 
   const [Dialog, [, toggle]] = useConfirmation({
     title: "Delete playlist",
     description:
       "Are you sure you want to delete this playlist? This action cannot be undone.",
     onConfirm: async () => {
-      await indexDb.playlist.delete(playlist.id);
-      navigate({ to: "/" });
+      await deletePlaylistMutation.mutateAsync();
     },
   });
 
   const user = useAppUser();
-  console.log({ trackMap });
 
   const state = useAudioState();
   const actions = useAudioDispatch();
@@ -154,8 +154,14 @@ const Details = ({
                   size="iconText"
                   className=""
                 >
-                  <Trash />
-                  <span className="hidden sm:block"> Delete</span>
+                  {deletePlaylistMutation.isPending ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    <>
+                      <Trash />
+                      <span className="hidden sm:block"> Delete</span>
+                    </>
+                  )}
                 </Button>
                 <Dialog />
               </div>
@@ -182,10 +188,7 @@ const Details = ({
                 <PlayButton track={track} />
 
                 <img
-                  src={
-                    trackMap?.[track.id]?.artworkUrl100 ??
-                    "https://via.placeholder.com/150"
-                  }
+                  src={track.coverArt ?? "https://via.placeholder.com/150"}
                   className="w-10 h-10 rounded-md"
                   alt={track.title}
                 />
@@ -207,14 +210,14 @@ const Details = ({
     </>
   );
 };
-const PlayButton = ({ track }: { track: AudioTrack }) => {
+const PlayButton = ({ track }: { track: EnrichedTrack }) => {
   const state = useAudioState();
   const actions = useAudioDispatch();
 
   return (
     <Button
       onClick={() => {
-        if (state.isLoading) return;
+        // if (state.isLoading) return;
         if (state.track?.id === track.id) {
           state.isPlaying ? actions.pause() : actions.play();
         } else {
@@ -230,18 +233,12 @@ const PlayButton = ({ track }: { track: AudioTrack }) => {
         state.track?.id === track.id && "border-primary text-primary"
       )}
     >
-      {state.isLoading && track.id === state.track?.id ? (
-        <Loader2 className="animate-spin" />
-      ) : state.track?.id === track.id && state.isPlaying ? (
-        <Pause />
-      ) : (
-        <Play />
-      )}
+      {state.track?.id === track.id && state.isPlaying ? <Pause /> : <Play />}
     </Button>
   );
 };
 const PreviewPlayer = () => {
-  const { isPlaying, track, isLoading, error } = useAudioState();
+  const { isPlaying, track } = useAudioState();
   const actions = useAudioDispatch();
 
   const togglePlay = async () => {
@@ -262,7 +259,7 @@ const PreviewPlayer = () => {
     <div className="fixed bottom-0 left-0 right-0 z-50  border-t bg-background/90 backdrop-blur-sm">
       <div className=" container mx-auto px-2 py-2  gap-2  flex items-center justify-between  ">
         <img
-          src={track.artwork ?? "https://via.placeholder.com/150"}
+          src={track.coverArt ?? "https://via.placeholder.com/150"}
           className="w-10 h-10 rounded-md"
           alt={track.title}
         />
@@ -270,8 +267,8 @@ const PreviewPlayer = () => {
           <span> {track.title}</span>
           <span> {track.artist}</span>
         </div>
-        {isLoading && <Loader2 className="animate-spin" />}
-        {error && <CircleAlertIcon className=" text-destructive" />}
+        {/* {isLoading && <Loader2 className="animate-spin" />}
+        {error && <CircleAlertIcon className=" text-destructive" />} */}
 
         <div>
           <Button onClick={togglePlay} variant="ghost" size="icon">
