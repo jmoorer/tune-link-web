@@ -4,7 +4,7 @@ import { deleteCookie, getCookie, setCookie } from "@tanstack/start/server";
 import { OAuth2Tokens } from "arctic";
 import { and, eq } from "drizzle-orm";
 import { db } from "~/db";
-import { userProviderTable, usersTable } from "~/db/schema";
+import { playlistsTable, userProviderTable, usersTable } from "~/db/schema";
 import {
   getAppSession,
   RETURN_URL_KEY,
@@ -77,6 +77,9 @@ export const APIRoute = createAPIFileRoute("/api/auth/$provider/callback")({
     await session.update({
       userId,
     });
+    if (session.id) {
+      await transferPlaylistOwnership(userId, session.id);
+    }
     const returnUrl = getCookie(RETURN_URL_KEY) ?? "/";
     deleteCookie(RETURN_URL_KEY);
     deleteCookie(STATE_KEY);
@@ -86,6 +89,15 @@ export const APIRoute = createAPIFileRoute("/api/auth/$provider/callback")({
   },
 });
 
+const transferPlaylistOwnership = async (userId: string, guestId: string) => {
+  await db
+    .update(playlistsTable)
+    .set({
+      userId,
+      guestUserId: null,
+    })
+    .where(eq(playlistsTable.guestUserId, guestId));
+};
 async function upsertUserFromProvider(profile: Profile, tokens: OAuth2Tokens) {
   let userId: string;
   const existingConns = await db

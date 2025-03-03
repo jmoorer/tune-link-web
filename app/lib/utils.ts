@@ -21,7 +21,8 @@ export function indexBy<T, K extends PropertyKey>(
 
 export function formatMediaDuration(
   seconds: number,
-  format: "standard" | "extended" | "full" = "standard"
+  format: "standard" | "extended" | "full" | "compact" = "standard",
+  maxUnits: number = 2
 ): string {
   if (seconds < 0) {
     throw new Error("Duration must be a positive number");
@@ -49,7 +50,26 @@ export function formatMediaDuration(
       } else {
         return `${remainingSeconds}s`;
       }
+    case "compact":
+      if (seconds <= 0) return "0 sec";
 
+      // Spotify-style formatting logic with seconds:
+      // - If under 1 minute: "X sec"
+      // - If under 1 hour (but at least 1 min): "X min Y sec" or "X min" if 0 seconds
+      // - If 1+ hours: "X hr Y min" or "X hr" if 0 minutes (ignoring seconds when hours are present)
+
+      if (hours === 0) {
+        if (minutes === 0) {
+          return `${seconds} sec`;
+        } else {
+          return seconds === 0
+            ? `${minutes} min`
+            : `${minutes} min ${seconds} sec`;
+        }
+      } else {
+        const hourText = hours === 1 ? "1 hr" : `${hours} hr`;
+        return minutes === 0 ? hourText : `${hourText} ${minutes} min`;
+      }
     case "full":
       // Format: 3 minutes 45 seconds or 1 hour 23 minutes 45 seconds
       const parts: string[] = [];

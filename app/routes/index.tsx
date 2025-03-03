@@ -1,8 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useLiveQuery } from "dexie-react-hooks";
 import { Music2 } from "lucide-react";
-import { z } from "zod";
 import GenerationForm from "~/components/forms/generation-form";
 import { Main } from "~/components/main";
 import {
@@ -16,13 +13,11 @@ import { formatDateRelative } from "~/lib/utils";
 
 export const Route = createFileRoute("/")({
   component: Home,
+  loader: async ({}) => getRecentPlaylists(),
 });
 
 function Home() {
-  const { data: recent } = useQuery({
-    queryKey: ["recent-playlists"],
-    queryFn: () => getRecentPlaylists(),
-  });
+  const recent = Route.useLoaderData();
   return (
     <Main className=" py-10 space-y-4">
       <div className="w-full max-w-2xl space-y-4 mx-auto">

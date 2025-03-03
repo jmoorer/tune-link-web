@@ -7,13 +7,21 @@ import {
 import {
   CircleAlertIcon,
   Clock,
+  InfoIcon,
   Loader2,
   LogInIcon,
+  MenuIcon,
+  MoreHorizontal,
+  MoreVerticalIcon,
   Music,
   Pause,
   Pen,
   Play,
+  SaveIcon,
+  Share,
+  ShareIcon,
   Trash,
+  UnlockIcon,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -43,12 +51,45 @@ import {
 } from "~/context/audio-context";
 import { EnrichedTrack, PlaylistDetails } from "~/lib/types";
 import { getPlaylistByShortcode, deletePlaylist } from "~/api/playlist";
-
+import { Modal } from "~/components/dialog/modal";
+import LoginForm from "~/components/forms/login-form";
+import { getOwner } from "~/api/auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 export const Route = createFileRoute("/playlist/$shortcode")({
   component: RouteComponent,
-  loader: async ({ params }) =>
-    getPlaylistByShortcode({ data: { shortcode: params.shortcode } }),
+  loader: async ({ params }) => {
+    const playlist = await getPlaylistByShortcode({
+      data: { shortcode: params.shortcode },
+    });
+    const owner = await getOwner();
+    console.log({
+      owner,
+      playlist,
+    });
+
+    return {
+      ...playlist,
+      isOwner:
+        owner.type === "user"
+          ? owner.userId === playlist.owner.id
+          : owner.guestId === playlist.owner.id,
+    } satisfies PlaylistDetailsWithOwner;
+  },
 });
+
+type PlaylistDetailsWithOwner = PlaylistDetails & {
+  isOwner: boolean;
+  owner: {
+    name: string;
+    id: string;
+    avatar?: string;
+  };
+};
 
 function RouteComponent() {
   const playlist = Route.useLoaderData();
@@ -79,7 +120,7 @@ const Details = ({
   playlist,
   onEditMode,
 }: {
-  playlist: PlaylistDetails;
+  playlist: PlaylistDetailsWithOwner;
   onEditMode: () => void;
 }) => {
   const duration = playlist.tracks.reduce(
@@ -100,10 +141,11 @@ const Details = ({
     },
   });
 
-  const [Dialog, [, toggle]] = useConfirmation({
+  const [DeleteDialog, [, toggleDeleteDialog]] = useConfirmation({
     title: "Delete playlist",
     description:
       "Are you sure you want to delete this playlist? This action cannot be undone.",
+    confirmVariant: "destructive",
     onConfirm: async () => {
       await deletePlaylistMutation.mutateAsync();
     },
@@ -112,68 +154,99 @@ const Details = ({
   const user = useAppUser();
 
   const state = useAudioState();
-  const actions = useAudioDispatch();
+
   return (
     <>
       <Card fullscreen>
         <CardHeader className=" relative gap-3">
-          <div className="flex flex-col sm:flex-row gap-3 items-center text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row gap-3 items-center text-left">
             <div className="w-48 h-48 flex-shrink-0 bg-primary/20 rounded-lg shadow-md flex items-center justify-center">
               <Music size={64} className="text-primary" />
             </div>
-            <div className="flex-1 flex flex-col gap-2">
+            <div className="flex-1 flex flex-col gap-2 w-full">
               <CardTitle className="text-3xl">{playlist.title}</CardTitle>
               <CardDescription>
                 <span>{playlist.description}</span>
               </CardDescription>
-              <span className="flex gap-2 sm:justify-start justify-center">
+              <span className="flex gap-2 justify-start">
                 <Badge variant="secondary">
                   <Music className="mr-2" size={16} />
                   {playlist.tracks.length} tracks
                 </Badge>
                 <Badge variant="secondary">
                   <Clock className="mr-2" size={16} />
-                  {formatMediaDuration(duration, "full")}
+                  {formatMediaDuration(duration, "compact")}
                 </Badge>
               </span>
-              <div className="flex items-center pt-6  sm:justify-start justify-center gap-2">
-                {user ? (
-                  <Button>Save to Spotify</Button>
-                ) : (
+              <div className="flex items-center pt-3  justify-start  gap-2">
+                {user && (
                   <Button>
-                    <LogInIcon /> Login to Save
+                    <SaveIcon /> Save to Spotify
                   </Button>
                 )}
-                <Button onClick={onEditMode} variant="secondary">
-                  <Pen />
-                  Edit
+
+                <Button variant="secondary">
+                  <ShareIcon /> Share
                 </Button>
-                <Button
-                  onClick={toggle}
-                  variant="outline"
-                  size="iconText"
-                  className=""
-                >
-                  {deletePlaylistMutation.isPending ? (
-                    <Loader2 className="animate-spin" />
-                  ) : (
-                    <>
-                      <Trash />
-                      <span className="hidden sm:block"> Delete</span>
-                    </>
-                  )}
-                </Button>
-                <Dialog />
+
+                {playlist.isOwner && (
+                  <>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="secondary" size="icon">
+                          <MoreVerticalIcon />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={onEditMode}>
+                          <Pen />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={toggleDeleteDialog}
+                        >
+                          <Trash />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <DeleteDialog />
+                  </>
+                )}
               </div>
             </div>
           </div>
 
           {!user && (
-            <Alert variant="info">
-              <AlertTitle>Login to Save</AlertTitle>
-              <AlertDescription>
-                Login to save your playlist to your streaming service.
-              </AlertDescription>
+            <Alert
+              variant="info"
+              className="flex w-full flex-col sm:flex-row sm:items-center"
+            >
+              <div className="flex flex-1 items-center gap-3">
+                <div className="flex-shrink-0">
+                  <InfoIcon className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <AlertTitle className="">Login to save</AlertTitle>
+
+                  <AlertDescription>
+                    Login to save your playlist to your streaming service.
+                  </AlertDescription>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center pt-3 sm:pt-0">
+                <Modal
+                  title="Login to Save"
+                  description="Login to save your playlist to your streaming service."
+                  trigger={
+                    <Button className="sm:w-auto">
+                      <UnlockIcon /> Get Started
+                    </Button>
+                  }
+                  content={<LoginForm />}
+                />
+              </div>
             </Alert>
           )}
         </CardHeader>

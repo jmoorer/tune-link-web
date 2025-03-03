@@ -3,6 +3,13 @@ import { sessionMiddleware } from "./middleware";
 import { db } from "~/db";
 import { eq } from "drizzle-orm";
 import { usersTable, userProviderTable } from "~/db/schema";
+
+export const getOwner = createServerFn({})
+  .middleware([sessionMiddleware])
+  .handler(async ({ context: { owner } }) => {
+    return owner;
+  });
+
 export const getCurrentUser = createServerFn({})
   .middleware([sessionMiddleware])
   .handler(async ({ context: { owner } }) => {
