@@ -9,5 +9,8 @@ export default defineConfig({
         projects: ["./tsconfig.json"],
       }),
     ],
+    build: {
+      target: "esnext",
+    },
   },
 });
