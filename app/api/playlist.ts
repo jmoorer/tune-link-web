@@ -45,7 +45,9 @@ export const getPlaylistByDetails = createServerFn()
         playlistExportsTable,
         and(
           eq(playlistsTable.id, playlistExportsTable.playlistId),
-          eq(playlistExportsTable.userId, owner.userId ?? "")
+          owner.type === "user"
+            ? eq(playlistExportsTable.userId, owner.userId)
+            : undefined
         )
       )
       .where(eq(playlistsTable.shortcode, shortcode));
