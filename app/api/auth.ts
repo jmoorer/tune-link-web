@@ -21,6 +21,7 @@ export const getCurrentUser = createServerFn({})
         id: usersTable.id,
         email: usersTable.email,
         name: usersTable.name,
+        avatar: usersTable.avatar,
         provider: userProviderTable.provider,
       })
       .from(usersTable)

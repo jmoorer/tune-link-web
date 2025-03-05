@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Logo } from "./icons";
 
 interface Props {
   user?: AppUser;
@@ -17,7 +18,8 @@ export const NavBar = ({ user }: Props) => {
   return (
     <div className="h-16 p-4 border border-b">
       <div className="flex justify-between items-center">
-        <Link to="/">
+        <Link to="/" className="flex items-center gap-2">
+          <Logo className="w-8 h-8 text-primary" />
           <span className="text-2xl font-bold">Tune Link</span>
         </Link>
         <div>
