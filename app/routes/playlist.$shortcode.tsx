@@ -26,7 +26,7 @@ import {
   UnlockIcon,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { useConfirmation } from "~/components/dialog/confirmation";
 import EditForm from "~/components/forms/edit-form";
 import { Main } from "~/components/main";
@@ -39,11 +39,8 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { indexDb, GeneratedPlaylist } from "~/db/appDb";
-import { usePlaylist } from "~/hooks/use-playlist";
 import { useToggle } from "~/hooks/use-toggle";
 import { useAppUser } from "~/hooks/useAppUser";
-import { unicodes } from "~/lib/unicodes";
 import { cn, formatMediaDuration } from "~/lib/utils";
 import { Badge } from "~/components/ui/badge";
 import {

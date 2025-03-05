@@ -11,7 +11,7 @@ import { EnrichedTrack, StreamingPlaylist } from "../types";
 export const spotifyAuth = new arctic.Spotify(
   env.SPOTIFY_CLIENT_ID,
   env.SPOTIFY_CLIENT_SECRET,
-  "http://localhost:3500/api/auth/spotify/callback"
+  `${env.APP_URL}/api/auth/spotify/callback`
 );
 
 export const spotifyFetcher = createFetcher("https://api.spotify.com/v1");

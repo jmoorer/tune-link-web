@@ -7,9 +7,7 @@ import { useForm } from "@tanstack/react-form";
 import { generationInputSchema } from "~/lib/validators";
 import { indexBy } from "~/lib/utils";
 import { generatePlaylist } from "~/api/generate";
-import { indexDb } from "~/db/appDb";
 import { FieldError } from "./field-error";
-import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { GenerationParams } from "~/lib/types";
 

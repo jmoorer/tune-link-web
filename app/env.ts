@@ -8,6 +8,7 @@ export const env = createEnv({
     SPOTIFY_CLIENT_ID: z.string(),
     SPOTIFY_CLIENT_SECRET: z.string(),
     SECRET: z.string().optional(),
+    APP_URL: z.string().optional(),
   },
   clientPrefix: "PUBLIC_",
   client: {
