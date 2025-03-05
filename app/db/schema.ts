@@ -59,6 +59,12 @@ export const playlistExportsTable = pgTable("playlist_exports", {
     .notNull()
     .references(() => playlistsTable.id, { onDelete: "cascade" }),
   service: providerEnum("service").notNull(),
-  servicePlaylistId: varchar("service_playlist_id", { length: 255 }),
+  servicePlaylistId: varchar("service_playlist_id", { length: 255 }).notNull(),
   exportedAt: timestamp("exported_at").notNull().defaultNow(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => usersTable.id, {
+      onDelete: "cascade",
+    }),
+  url: text("url").notNull(),
 });

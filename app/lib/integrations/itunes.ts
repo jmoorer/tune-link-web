@@ -29,7 +29,7 @@ export const itunesSearch = async (
     query: {
       term: searchTerm,
       entity: "song",
-      limit: "10",
+      limit: "3",
     },
   });
 

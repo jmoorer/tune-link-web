@@ -24,6 +24,11 @@ export const playlistResultSchema = z.object({
     })
     .array(),
 });
+export const playlistUpdateSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  tracks: z.record(z.string(), z.number()),
+});
 export const songSearchSchema = z.object({
   title: z.string().min(1),
   artist: z.string().min(1),

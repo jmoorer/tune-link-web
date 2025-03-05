@@ -15,7 +15,7 @@ import { NavBar } from "~/components/navbar";
 import { NotFound } from "~/components/NotFound";
 import { Toaster } from "~/components/ui/sonner";
 import appCss from "~/styles/app.css?url";
-import { seo } from "~/utils/seo";
+import { seo } from "~/lib/utils/seo";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;

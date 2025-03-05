@@ -7,24 +7,65 @@ import { FormLabel } from "./form-label";
 import { GripVerticalIcon, Minus, MinusCircleIcon } from "lucide-react";
 import SortableList from "../drag/SortableList";
 import { useForm } from "@tanstack/react-form";
-import { PlaylistDetails } from "~/lib/types";
+import { PlaylistDetails, PlaylistUpdate } from "~/lib/types";
+import { useMutation } from "@tanstack/react-query";
+import { updatePlaylist } from "~/api/playlist";
+import { useRouter } from "@tanstack/react-router";
+import { Textarea } from "../ui/textarea";
 interface Props {
   playlist: PlaylistDetails;
   onEndEdit: () => void;
 }
 
 const EditForm = ({ playlist, onEndEdit }: Props) => {
-  const { Field } = useForm({
-    defaultValues: {
-      ...playlist,
+  const router = useRouter();
+  const updatePlaylistMutation = useMutation({
+    mutationFn: (data: PlaylistUpdate) =>
+      updatePlaylist({ data: { ...data, shortcode: playlist.shortcode } }),
+    onSuccess: () => {
+      router.invalidate();
+      onEndEdit();
     },
+  });
+  const { Field, handleSubmit } = useForm({
+    defaultValues: {
+      title: playlist.title ?? "",
+      description: playlist.description ?? "",
+      tracks: playlist.tracks,
+    },
+    onSubmit: ({ value }) =>
+      updatePlaylistMutation.mutateAsync({
+        title: value.title,
+        description: value.description,
+        tracks: Object.fromEntries(value.tracks.map((t, i) => [t.id, i + 1])),
+      }),
   });
   return (
     <>
       <Card fullscreen>
         <CardHeader className="">
           <FormLabel label="Title">
-            <Input className="text-2xl" value={playlist.title} />
+            <Field
+              name="title"
+              children={(field) => (
+                <Input
+                  className="text-2xl"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+              )}
+            />
+          </FormLabel>
+          <FormLabel label="Description">
+            <Field
+              name="description"
+              children={(field) => (
+                <Textarea
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+              )}
+            />
           </FormLabel>
         </CardHeader>
         <CardContent className="flex-1 ">
@@ -61,6 +102,12 @@ const EditForm = ({ playlist, onEndEdit }: Props) => {
                         <MinusCircleIcon className="h-4 w-4" />
                       </Button>
 
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={track.coverArt}
+                          className="w-10 h-10 rounded-md"
+                        />
+                      </div>
                       <div className="flex flex-col flex-1">
                         <span>{track.title}</span>
                         <span className="text-muted-foreground">
@@ -90,7 +137,7 @@ const EditForm = ({ playlist, onEndEdit }: Props) => {
           <Button onClick={onEndEdit} variant="secondary">
             Cancel
           </Button>
-          <Button>Save</Button>
+          <Button onClick={handleSubmit}>Save</Button>
         </div>
       </div>
     </>

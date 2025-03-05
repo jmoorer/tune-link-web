@@ -17,8 +17,8 @@ import {
   calculateContainment,
   normalizeString,
   tokenSetSimilarity,
-} from "~/lib/util/stringUtils";
-import { jaroWinklerSimilarity } from "~/lib/util/stringUtils";
+} from "~/lib/utils/stringUtils";
+import { jaroWinklerSimilarity } from "~/lib/utils/stringUtils";
 const instuctions =
   "you are to act as a music recomender. I will give you  words and you will generate a 15 track playlist. you  should convert it into the given structure as json";
 

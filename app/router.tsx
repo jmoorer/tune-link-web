@@ -26,6 +26,16 @@ export function createRouter() {
       },
     }),
     mutationCache: new MutationCache({
+      onSuccess: (data, _, __, mutation) => {
+        if (mutation?.meta?.successMessage) {
+          toast.success(mutation.meta.successMessage as string);
+        }
+      },
+      onSettled: () => {
+        if (queryClient.isMutating() === 1) {
+          return queryClient.invalidateQueries();
+        }
+      },
       onError: (error, _, __, mutation) => {
         if (mutation?.meta?.errorMessage) {
           toast.error(mutation.meta.errorMessage as string);

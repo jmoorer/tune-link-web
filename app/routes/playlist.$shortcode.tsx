@@ -1,13 +1,15 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createFileRoute,
   getRouteApi,
   useNavigate,
+  useRouter,
 } from "@tanstack/react-router";
 import {
   CircleAlertIcon,
   Clock,
   InfoIcon,
+  Link,
   Loader2,
   LogInIcon,
   MenuIcon,
@@ -50,7 +52,12 @@ import {
   useAudioDispatch,
 } from "~/context/audio-context";
 import { EnrichedTrack, PlaylistDetails } from "~/lib/types";
-import { getPlaylistByShortcode, deletePlaylist } from "~/api/playlist";
+import {
+  getPlaylistByDetails,
+  deleteExport,
+  deletePlaylist,
+  transferPlaylist,
+} from "~/api/playlist";
 import { Modal } from "~/components/dialog/modal";
 import LoginForm from "~/components/forms/login-form";
 import { getOwner } from "~/api/auth";
@@ -60,10 +67,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { SpotifyIcon } from "~/components/icons";
+import { ChevronDown } from "lucide-react";
+
 export const Route = createFileRoute("/playlist/$shortcode")({
   component: RouteComponent,
-  loader: async ({ params }) => {
-    const playlist = await getPlaylistByShortcode({
+  loader: async ({ params, context: { queryClient } }) => {
+    const playlist = await getPlaylistByDetails({
       data: { shortcode: params.shortcode },
     });
     const owner = await getOwner();
@@ -179,11 +189,12 @@ const Details = ({
                 </Badge>
               </span>
               <div className="flex items-center pt-3  justify-start  gap-2">
-                {user && (
-                  <Button>
-                    <SaveIcon /> Save to Spotify
-                  </Button>
-                )}
+                {user &&
+                  (playlist.export ? (
+                    <ManageExportButton playlistExport={playlist.export} />
+                  ) : (
+                    <SavePlaylistButton playlist={playlist} />
+                  ))}
 
                 <Button variant="secondary">
                   <ShareIcon /> Share
@@ -252,35 +263,136 @@ const Details = ({
         </CardHeader>
 
         <CardContent className="flex-1 ">
-          <div className="  space-y-3 rounded">
-            {playlist.tracks.map((track) => (
-              <div
-                key={track.id}
-                className="px-3 py-2 border bg-background  rounded  flex items-center gap-2"
-              >
-                <PlayButton track={track} />
-
-                <img
-                  src={track.coverArt ?? "https://via.placeholder.com/150"}
-                  className="w-10 h-10 rounded-md"
-                  alt={track.title}
-                />
-
-                <div className="flex flex-col flex-1">
-                  <span>{track.title}</span>
-                  <span className="text-muted-foreground">{track.artist}</span>
-                </div>
-
-                <span className="text-muted-foreground">
-                  {formatMediaDuration(track.duration)}
-                </span>
-              </div>
-            ))}
-          </div>
+          <PlaylistTracks tracks={playlist.tracks} />
         </CardContent>
       </Card>
       {state.track && <PreviewPlayer />}
     </>
+  );
+};
+
+const ManageExportButton = ({
+  playlistExport,
+}: {
+  playlistExport: NonNullable<PlaylistDetailsWithOwner["export"]>;
+}) => {
+  const router = useRouter();
+  const deleteExportMutation = useMutation({
+    mutationFn: () => deleteExport({ data: { exportId: playlistExport.id } }),
+    meta: {
+      errorMessage: "Failed to delete export",
+    },
+    onSuccess: () => {
+      router.invalidate({
+        filter: (d) => d.routeId === "/playlist/$shortcode",
+      });
+    },
+  });
+  return (
+    <div className="flex items-center">
+      {deleteExportMutation.isPending ? (
+        <Button className="rounded-r-none border-r" disabled>
+          <Loader2 className="animate-spin" />
+          Deleting export...
+        </Button>
+      ) : (
+        <>
+          <Button className="rounded-r-none border-r" asChild>
+            <a href={playlistExport.url} target="_blank">
+              <SpotifyIcon />
+              View in Spotify
+            </a>
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="rounded-l-none">
+                <ChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => deleteExportMutation.mutateAsync()}
+                disabled={deleteExportMutation.isPending}
+                className="text-destructive"
+              >
+                {deleteExportMutation.isPending ? (
+                  <>
+                    <Loader2 className="animate-spin" /> Deleting...
+                  </>
+                ) : (
+                  <>Delete Export</>
+                )}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </>
+      )}
+    </div>
+  );
+};
+
+const SavePlaylistButton = ({
+  playlist,
+}: {
+  playlist: PlaylistDetailsWithOwner;
+}) => {
+  const router = useRouter();
+  const transferPlaylistMutation = useMutation({
+    mutationFn: () =>
+      transferPlaylist({ data: { shortcode: playlist.shortcode } }),
+    meta: {
+      successMessage: "Playlist saved to Spotify",
+    },
+    onSuccess: () => {
+      router.invalidate({
+        filter: (d) => d.routeId === "/playlist/$shortcode",
+      });
+    },
+  });
+  return (
+    <Button
+      disabled={transferPlaylistMutation.isPending}
+      onClick={() => transferPlaylistMutation.mutateAsync()}
+    >
+      {transferPlaylistMutation.isPending ? (
+        <>
+          <Loader2 className="animate-spin" /> Saving...
+        </>
+      ) : (
+        <>
+          <SaveIcon /> Save to Spotify
+        </>
+      )}
+    </Button>
+  );
+};
+const PlaylistTracks = ({ tracks }: { tracks: EnrichedTrack[] }) => {
+  return (
+    <div className="  space-y-3 rounded">
+      {tracks.map((track) => (
+        <div
+          key={track.id}
+          className="px-3 py-2 border bg-background  rounded  flex items-center gap-2"
+        >
+          <PlayButton track={track} />
+
+          <img
+            src={track.coverArt ?? "https://via.placeholder.com/150"}
+            className="w-10 h-10 rounded-md"
+            alt={track.title}
+          />
+
+          <div className="flex flex-col flex-1">
+            <span>{track.title}</span>
+            <span className="text-muted-foreground">{track.artist}</span>
+          </div>
+
+          <span className="text-muted-foreground">
+            {formatMediaDuration(track.duration)}
+          </span>
+        </div>
+      ))}
+    </div>
   );
 };
 const PlayButton = ({ track }: { track: EnrichedTrack }) => {

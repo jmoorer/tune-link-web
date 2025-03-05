@@ -1,12 +1,14 @@
-export const createFetcher = (baseUrl: string) => {
+export type Fetcher = ReturnType<typeof createFetcher>;
+
+export const createFetcher = (baseUrl: string, accessToken?: string) => {
   const fetcher = async <T>(
     path: string,
     {
-      token,
       method,
       body,
       query,
       options,
+      token,
     }: {
       token?: string;
       method: "GET" | "POST" | "PUT" | "DELETE";
@@ -22,34 +24,36 @@ export const createFetcher = (baseUrl: string) => {
     if (query) {
       url += `?${new URLSearchParams(query).toString()}`;
     }
+    const _token = accessToken ?? token;
+
     try {
       response = await fetch(url, {
         ...options,
         method,
         body: body ? JSON.stringify(body) : undefined,
-        headers: token
+        headers: _token
           ? {
               ...options?.headers,
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${_token}`,
             }
           : options?.headers,
       });
 
       if (!response.ok) {
-        // console.log(
-        //   "failed response:",
-        //   JSON.stringify(
-        //     {
-        //       url,
-        //       method,
-        //       body,
-        //       headers: options?.headers,
-        //       response: await response.text(),
-        //     },
-        //     null,
-        //     2
-        //   )
-        // );
+        console.log(
+          "failed response:",
+          JSON.stringify(
+            {
+              url,
+              method,
+              body,
+              headers: options?.headers,
+              response: await response.text(),
+            },
+            null,
+            2
+          )
+        );
         throw new HTTPError(
           `HTTP error! status: ${response.status}`,
           response.status
@@ -70,7 +74,7 @@ export const createFetcher = (baseUrl: string) => {
   return fetcher;
 };
 
-class HTTPError extends Error {
+export class HTTPError extends Error {
   constructor(
     message: string,
     public status: number
