@@ -5,4 +5,6 @@ import { env } from "~/env";
 import * as schema from "./schema";
 export const db = drizzle(env.DATABASE_URL, { schema });
 
-await migrate(db, { migrationsFolder: "./drizzle" });
+migrate(db, { migrationsFolder: "./drizzle" }).then(() => {
+  console.log("Migrations applied");
+});
