@@ -11,9 +11,11 @@ import {
   STATE_KEY,
   VERIFIER_KEY,
 } from "~/lib/auth";
-import { SpotifyUser } from "~/lib/integrations/spotify";
+import { getSpotifyUser } from "~/lib/integrations/spotify";
 import { spotifyAuth } from "~/lib/integrations/spotify";
 import { spotifyFetcher } from "~/lib/integrations/spotify";
+import { getYoutubeUser } from "~/lib/integrations/youtube";
+import { youtubeAuth } from "~/lib/integrations/youtube";
 import { providerTypeSchema } from "~/lib/validators";
 import { ProviderType } from "~/lib/types";
 
@@ -56,15 +58,26 @@ export const APIRoute = createAPIFileRoute("/api/auth/$provider/callback")({
           code,
           cookieVerifier
         );
-        const sp = await spotifyFetcher<SpotifyUser>("/me", {
-          token: tokens.accessToken(),
-          method: "GET",
-        });
+        const sp = await getSpotifyUser(tokens.accessToken());
         profile = {
           provider: "spotify",
           id: sp.id,
           avatarUrl: sp.images.at(0)?.url ?? "",
           displayName: sp.display_name,
+        };
+        break;
+      }
+      case "youtube": {
+        tokens = await youtubeAuth.validateAuthorizationCode(
+          code,
+          cookieVerifier
+        );
+        const yt = await getYoutubeUser(tokens.accessToken());
+        profile = {
+          provider: "youtube",
+          id: yt.sub,
+          avatarUrl: yt.picture,
+          displayName: yt.name,
         };
         break;
       }

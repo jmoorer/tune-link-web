@@ -23,6 +23,7 @@ export const getCurrentUser = createServerFn({})
         name: usersTable.name,
         avatar: usersTable.avatar,
         provider: userProviderTable.provider,
+        providerId: userProviderTable.providerId,
       })
       .from(usersTable)
       .where(eq(usersTable.id, owner.userId))

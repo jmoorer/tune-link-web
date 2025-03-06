@@ -11,6 +11,7 @@ import { generateCodeVerifier } from "arctic";
 import { generateState } from "arctic";
 import { spotifyAuth } from "~/lib/integrations/spotify";
 import { providerTypeSchema } from "~/lib/validators";
+import { youtubeAuth } from "~/lib/integrations/youtube";
 
 export const APIRoute = createAPIFileRoute("/api/auth/$provider")({
   GET: async ({ request, params }) => {
@@ -31,6 +32,16 @@ export const APIRoute = createAPIFileRoute("/api/auth/$provider")({
           "user-read-private",
           "user-read-email",
         ]);
+        break;
+      }
+      case "youtube": {
+        url = youtubeAuth.createAuthorizationURL(state, verifier, [
+          "https://www.googleapis.com/auth/youtube.readonly",
+          "https://www.googleapis.com/auth/userinfo.profile",
+          "openid",
+        ]);
+        url.searchParams.set("prompt", "consent");
+        url.searchParams.set("access_type", "offline");
         break;
       }
       default: {

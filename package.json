@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vinxi dev --port 3500",
     "build": "vinxi build",
-    "start": "vinxi start"
+    "start": "vinxi start",
+    "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.1.17",

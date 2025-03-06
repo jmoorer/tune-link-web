@@ -7,6 +7,8 @@ export const env = createEnv({
     OPENAI_API_KEY: z.string().min(1),
     SPOTIFY_CLIENT_ID: z.string(),
     SPOTIFY_CLIENT_SECRET: z.string(),
+    GOOGLE_CLIENT_ID: z.string(),
+    GOOGLE_CLIENT_SECRET: z.string(),
     SECRET: z.string().optional(),
     APP_URL: z.string().optional(),
   },

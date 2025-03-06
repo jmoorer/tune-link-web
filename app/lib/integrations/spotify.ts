@@ -137,3 +137,11 @@ export class SpotifyService implements PlaylistService {
     });
   }
 }
+
+export const getSpotifyUser = async (token: string) => {
+  const response = await spotifyFetcher<SpotifyUser>("/me", {
+    token,
+    method: "GET",
+  });
+  return response;
+};
