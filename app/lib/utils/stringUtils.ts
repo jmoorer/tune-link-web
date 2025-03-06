@@ -345,3 +345,16 @@ export function weightedStringComparison(
 
   return score;
 }
+
+export function calculateSimilarity(str1: string, str2: string) {
+  if (str1 === str2) return 1.0;
+  if (str1.includes(str2) || str2.includes(str1)) return 0.9;
+
+  const set1 = new Set(str1.split(" "));
+  const set2 = new Set(str2.split(" "));
+
+  const intersection = new Set([...set1].filter((x) => set2.has(x)));
+  const union = new Set([...set1, ...set2]);
+
+  return intersection.size / union.size;
+}
