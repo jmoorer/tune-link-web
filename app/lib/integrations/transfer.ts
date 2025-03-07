@@ -36,17 +36,22 @@ export class TransferService {
   constructor(private readonly service: PlaylistService) {}
 
   async transferPlaylist(playlist: GeneratedPlaylist) {
-    const playlistResult = await this.service.createPlaylist({
-      title: playlist.title,
-      description: playlist.description ?? undefined,
-    });
-
     const matchResults = await this.service.findMatchingTracks(
       playlist.tracks.map((track) => ({
         title: track.title,
         artist: track.artist,
       }))
     );
+    if (matchResults.misses.length > 0) {
+      throw new Error(
+        `Failed to find matches for ${matchResults.misses.length} tracks`
+      );
+    }
+    const playlistResult = await this.service.createPlaylist({
+      title: playlist.title,
+      description: playlist.description ?? undefined,
+    });
+
     await this.service.addTracksToPlaylist(
       playlistResult.id,
       matchResults.matches.map((match) => match.target.id)

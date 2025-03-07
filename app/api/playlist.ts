@@ -11,9 +11,11 @@ import { authMiddleware, sessionMiddleware } from "./middleware";
 import { notFound } from "@tanstack/react-router";
 import { and } from "drizzle-orm";
 import { usersTable } from "~/db/schema";
-import { TransferService } from "~/lib/integrations/transfer";
+import { TransferService, PlaylistService } from "~/lib/integrations/transfer";
 import { spotifyAuth, SpotifyService } from "~/lib/integrations/spotify";
 import { playlistUpdateSchema } from "~/lib/validators";
+import { youtubeAuth, YoutubeService } from "~/lib/integrations/youtube";
+import { chunk } from "~/lib/utils";
 
 export const getRecentPlaylists = createServerFn()
   .middleware([sessionMiddleware])
@@ -112,23 +114,54 @@ export const transferPlaylist = createServerFn()
       userProvider.tokenExpiresAt < new Date() &&
       userProvider.refreshToken
     ) {
-      const token = await spotifyAuth.refreshAccessToken(
-        userProvider.refreshToken
-      );
+      let token;
+      switch (userProvider.provider) {
+        case "spotify":
+          token = await spotifyAuth.refreshAccessToken(
+            userProvider.refreshToken
+          );
+          break;
+        case "youtube":
+          token = await youtubeAuth.refreshAccessToken(
+            userProvider.refreshToken
+          );
+          break;
+        default:
+          throw new Error("Unsupported provider");
+      }
       await db
         .update(userProviderTable)
         .set({
           accessToken: token.accessToken(),
           tokenExpiresAt: token.accessTokenExpiresAt(),
-          refreshToken: token.refreshToken(),
+          refreshToken:
+            "refreshToken" in token.data
+              ? token.refreshToken()
+              : userProvider.refreshToken,
         })
         .where(eq(userProviderTable.id, userProvider.id));
       userProvider.accessToken = token.accessToken();
       userProvider.tokenExpiresAt = token.accessTokenExpiresAt();
     }
-    const spotifyService = new SpotifyService(userProvider.accessToken);
 
-    const transferService = new TransferService(spotifyService);
+    let musicService: PlaylistService;
+    switch (userProvider.provider) {
+      case "spotify": {
+        musicService = new SpotifyService(userProvider.accessToken);
+
+        break;
+      }
+      case "youtube": {
+        musicService = new YoutubeService(userProvider.accessToken);
+
+        break;
+      }
+      default: {
+        throw new Error("Unsupported provider");
+      }
+    }
+
+    const transferService = new TransferService(musicService);
     const transferResult = await transferService.transferPlaylist({
       title: playlist.title,
       tracks: playlist.tracks,
@@ -139,7 +172,7 @@ export const transferPlaylist = createServerFn()
       .insert(playlistExportsTable)
       .values({
         playlistId: playlist.id,
-        service: "spotify",
+        service: userProvider.provider,
         servicePlaylistId: transferResult.playlist.id,
         url: transferResult.playlist.url,
         userId,

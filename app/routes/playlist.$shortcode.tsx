@@ -66,6 +66,7 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { SpotifyIcon } from "~/components/icons";
 import { ChevronDown } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/playlist/$shortcode")({
   component: RouteComponent,
@@ -274,6 +275,8 @@ const ManageExportButton = ({
   playlistExport: NonNullable<PlaylistDetailsWithOwner["export"]>;
 }) => {
   const router = useRouter();
+  const providerLabel =
+    playlistExport.service === "spotify" ? "Spotify" : "YouTube";
   const deleteExportMutation = useMutation({
     mutationFn: () => deleteExport({ data: { exportId: playlistExport.id } }),
     meta: {
@@ -297,7 +300,7 @@ const ManageExportButton = ({
           <Button className="rounded-r-none border-r" asChild>
             <a href={playlistExport.url} target="_blank">
               <SpotifyIcon />
-              View in Spotify
+              View in {providerLabel}
             </a>
           </Button>
           <DropdownMenu>
@@ -333,12 +336,21 @@ const SavePlaylistButton = ({
 }: {
   playlist: PlaylistDetailsWithOwner;
 }) => {
+  const user = useAppUser();
+  const providerLabel =
+    playlist.export?.service === "spotify" ? "Spotify" : "YouTube";
   const router = useRouter();
   const transferPlaylistMutation = useMutation({
     mutationFn: () =>
       transferPlaylist({ data: { shortcode: playlist.shortcode } }),
     meta: {
-      successMessage: "Playlist saved to Spotify",
+      successMessage: `Playlist saved to ${providerLabel}`,
+    },
+    onError: (error) => {
+      console.log(error);
+      toast.error("Failed to save playlist", {
+        description: error.message,
+      });
     },
     onSuccess: () => {
       router.invalidate({
@@ -346,6 +358,7 @@ const SavePlaylistButton = ({
       });
     },
   });
+
   return (
     <Button
       disabled={transferPlaylistMutation.isPending}
@@ -357,7 +370,7 @@ const SavePlaylistButton = ({
         </>
       ) : (
         <>
-          <SaveIcon /> Save to Spotify
+          <SaveIcon /> Save to {providerLabel}
         </>
       )}
     </Button>

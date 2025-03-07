@@ -14,7 +14,7 @@ import {
 import { getSpotifyUser } from "~/lib/integrations/spotify";
 import { spotifyAuth } from "~/lib/integrations/spotify";
 import { spotifyFetcher } from "~/lib/integrations/spotify";
-import { getYoutubeUser } from "~/lib/integrations/youtube";
+import { getYoutubeUser, getYoutubeChannel } from "~/lib/integrations/youtube";
 import { youtubeAuth } from "~/lib/integrations/youtube";
 import { providerTypeSchema } from "~/lib/validators";
 import { ProviderType } from "~/lib/types";

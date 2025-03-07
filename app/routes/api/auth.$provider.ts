@@ -36,7 +36,7 @@ export const APIRoute = createAPIFileRoute("/api/auth/$provider")({
       }
       case "youtube": {
         url = youtubeAuth.createAuthorizationURL(state, verifier, [
-          "https://www.googleapis.com/auth/youtube.readonly",
+          "https://www.googleapis.com/auth/youtube",
           "https://www.googleapis.com/auth/userinfo.profile",
           "openid",
         ]);

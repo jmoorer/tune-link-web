@@ -13,6 +13,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Logo, SpotifyIcon, YoutubeIcon } from "./icons";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import LoginForm from "./forms/login-form";
+import { Modal } from "./dialog/modal";
+
 import { ProviderType } from "~/lib/types";
 interface Props {
   user?: AppUser;
@@ -74,14 +76,12 @@ export const NavBar = ({ user }: Props) => {
             // <Button asChild>
             //   <a href="/api/auth/spotify">Sign in </a>
             // </Button>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button>Sign in </Button>
-              </PopoverTrigger>
-              <PopoverContent>
-                <LoginForm />
-              </PopoverContent>
-            </Popover>
+            <Modal
+              title="Sign in"
+              description="Sign in to your streaming service to continue"
+              trigger={<Button>Sign in </Button>}
+              content={<LoginForm />}
+            />
           )}
         </div>
       </div>
