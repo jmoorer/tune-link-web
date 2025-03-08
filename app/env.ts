@@ -1,6 +1,7 @@
 import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
 
+console.log("ENV :", JSON.stringify(process.env, null, 2));
 export const env = createEnv({
   server: {
     DATABASE_URL: z.string(),
@@ -15,12 +16,5 @@ export const env = createEnv({
     APPLE_KEY_ID: z.string(),
     APPLE_PRIVATE_KEY: z.string(),
   },
-  clientPrefix: "PUBLIC_",
-  client: {
-    PUBLIC_DB_VERSION: z.coerce.number(),
-  },
-  runtimeEnv: {
-    ...process.env,
-    PUBLIC_DB_VERSION: import.meta.env.PUBLIC_DB_VERSION,
-  },
+  runtimeEnv: process.env,
 });
