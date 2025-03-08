@@ -9,13 +9,14 @@ export const createFetcher = (baseUrl: string, accessToken?: string) => {
       query,
       options,
       token,
+      headers,
     }: {
       token?: string;
       method: "GET" | "POST" | "PUT" | "DELETE";
 
       body?: any;
       query?: Record<string, string>;
-
+      headers?: Record<string, string>;
       options?: RequestInit;
     }
   ) => {
@@ -31,12 +32,14 @@ export const createFetcher = (baseUrl: string, accessToken?: string) => {
         ...options,
         method,
         body: body ? JSON.stringify(body) : undefined,
-        headers: _token
-          ? {
-              ...options?.headers,
-              Authorization: `Bearer ${_token}`,
-            }
-          : options?.headers,
+        headers: {
+          ...headers,
+          ...(_token
+            ? {
+                Authorization: `Bearer ${_token}`,
+              }
+            : options?.headers),
+        },
       });
 
       if (!response.ok) {

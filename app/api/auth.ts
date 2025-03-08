@@ -3,7 +3,11 @@ import { sessionMiddleware } from "./middleware";
 import { db } from "~/db";
 import { eq } from "drizzle-orm";
 import { usersTable, userProviderTable } from "~/db/schema";
-
+import { z } from "zod";
+import {
+  appleMusicFetcher,
+  generateDeveloperToken,
+} from "~/lib/integrations/apple";
 export const getOwner = createServerFn({})
   .middleware([sessionMiddleware])
   .handler(async ({ context: { owner } }) => {
@@ -32,4 +36,23 @@ export const getCurrentUser = createServerFn({})
         eq(userProviderTable.userId, usersTable.id)
       );
     return userRow.at(0);
+  });
+
+export const loginWithApple = createServerFn({})
+  .middleware([sessionMiddleware])
+  .validator(
+    z.object({
+      userToken: z.string(),
+    })
+  )
+  .handler(async ({ context: { owner }, data: { userToken } }) => {
+    const storefront = await appleMusicFetcher("/storefronts/us", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${generateDeveloperToken()}`,
+        "Music-User-Token": userToken,
+      },
+    });
+    console.log("storefront", storefront);
+    return owner;
   });

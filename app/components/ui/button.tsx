@@ -20,6 +20,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         youtube: "bg-red-500 text-white hover:bg-red-600",
         spotify: "bg-green-500 text-white hover:bg-green-600",
+        apple: "bg-black text-white hover:bg-black/80",
       },
       size: {
         default: "h-10 px-4 py-2",

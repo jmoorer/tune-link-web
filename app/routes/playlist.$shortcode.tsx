@@ -48,7 +48,7 @@ import {
   useAudioState,
   useAudioDispatch,
 } from "~/context/audio-context";
-import { EnrichedTrack, PlaylistDetails } from "~/lib/types";
+import { EnrichedTrack, PlaylistDetails, ProviderType } from "~/lib/types";
 import {
   getPlaylistByDetails,
   deleteExport,
@@ -269,14 +269,22 @@ const Details = ({
   );
 };
 
+const getProviderLabel = (service: ProviderType | undefined) => {
+  if (!service) return "";
+  return service === "spotify"
+    ? "Spotify"
+    : service === "apple"
+      ? "Apple Music"
+      : "YouTube";
+};
 const ManageExportButton = ({
   playlistExport,
 }: {
   playlistExport: NonNullable<PlaylistDetailsWithOwner["export"]>;
 }) => {
   const router = useRouter();
-  const providerLabel =
-    playlistExport.service === "spotify" ? "Spotify" : "YouTube";
+  const providerLabel = getProviderLabel(playlistExport.service);
+
   const deleteExportMutation = useMutation({
     mutationFn: () => deleteExport({ data: { exportId: playlistExport.id } }),
     meta: {
@@ -337,8 +345,7 @@ const SavePlaylistButton = ({
   playlist: PlaylistDetailsWithOwner;
 }) => {
   const user = useAppUser();
-  const providerLabel =
-    playlist.export?.service === "spotify" ? "Spotify" : "YouTube";
+  const providerLabel = getProviderLabel(user?.provider);
   const router = useRouter();
   const transferPlaylistMutation = useMutation({
     mutationFn: () =>

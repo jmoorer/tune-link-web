@@ -16,6 +16,7 @@ import { NotFound } from "~/components/NotFound";
 import { Toaster } from "~/components/ui/sonner";
 import appCss from "~/styles/app.css?url";
 import { seo } from "~/lib/utils/seo";
+import { appleMusicTokenQuery } from "~/lib/queries";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -65,7 +66,12 @@ export const Route = createRootRouteWithContext<{
     );
   },
   notFoundComponent: () => <NotFound />,
-  loader: ({}) => getCurrentUser(),
+  loader: async ({ context }) => {
+    await context.queryClient.ensureQueryData(appleMusicTokenQuery);
+
+    const user = await getCurrentUser();
+    return user;
+  },
   component: RootComponent,
 });
 
@@ -85,6 +91,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         {/* <script src="https://unpkg.com/react-scan/dist/auto.global.js" /> */}
 
         <HeadContent />
+        <script
+          src="https://js-cdn.music.apple.com/musickit/v3/musickit.js"
+          data-web-components
+          async
+        ></script>
       </head>
       <body className="h-screen flex flex-col">
         <NavBar user={user} />

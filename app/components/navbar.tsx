@@ -16,6 +16,7 @@ import LoginForm from "./forms/login-form";
 import { Modal } from "./dialog/modal";
 
 import { ProviderType } from "~/lib/types";
+import { AppleIcon } from "lucide-react";
 interface Props {
   user?: AppUser;
 }
@@ -23,6 +24,9 @@ interface Props {
 const UserTypeIcon = ({ provider }: { provider: ProviderType }) => {
   if (provider === "spotify") {
     return <SpotifyIcon className="text-green-500" width={20} height={20} />;
+  }
+  if (provider === "apple") {
+    return <AppleIcon className="text-red-500" width={20} height={20} />;
   }
   return <YoutubeIcon className="text-red-500" width={20} height={20} />;
 };

@@ -9,7 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { GenerationParams, PlaylistResult } from "~/lib/types";
 
-export const providerEnum = pgEnum("provider", ["spotify", "youtube"]);
+export const providerEnum = pgEnum("provider", ["spotify", "youtube", "apple"]);
 
 export const usersTable = pgTable("users", {
   id: uuid()

@@ -11,6 +11,9 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: z.string(),
     SECRET: z.string().optional(),
     APP_URL: z.string().optional(),
+    APPLE_TEAM_ID: z.string(),
+    APPLE_KEY_ID: z.string(),
+    APPLE_PRIVATE_KEY: z.string(),
   },
   clientPrefix: "PUBLIC_",
   client: {

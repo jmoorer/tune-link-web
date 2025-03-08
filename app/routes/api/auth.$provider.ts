@@ -19,6 +19,7 @@ export const APIRoute = createAPIFileRoute("/api/auth/$provider")({
     if (!parsed.success) {
       throw new Error("Provider not supported");
     }
+
     const provider = parsed.data;
     const state = generateState();
     const verifier = generateCodeVerifier();

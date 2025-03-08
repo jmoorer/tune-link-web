@@ -1,0 +1,3 @@
+tunelink.localhost {
+    reverse_proxy * localhost:3500
+}

@@ -2,6 +2,7 @@ import { json } from "@tanstack/start";
 import { createAPIFileRoute } from "@tanstack/start/api";
 import { deleteCookie, getCookie, setCookie } from "@tanstack/start/server";
 import { OAuth2Tokens } from "arctic";
+import { z } from "zod";
 import { and, eq } from "drizzle-orm";
 import { db } from "~/db";
 import { playlistsTable, userProviderTable, usersTable } from "~/db/schema";
@@ -18,7 +19,12 @@ import { getYoutubeUser, getYoutubeChannel } from "~/lib/integrations/youtube";
 import { youtubeAuth } from "~/lib/integrations/youtube";
 import { providerTypeSchema } from "~/lib/validators";
 import { ProviderType } from "~/lib/types";
-
+import { nanoid } from "nanoid";
+import {
+  appleMusicFetcher,
+  generateDeveloperToken,
+  getTokenExpiration,
+} from "~/lib/integrations/apple";
 type Profile = {
   id: string;
   provider: ProviderType;
@@ -26,13 +32,16 @@ type Profile = {
   displayName: string;
   avatarUrl: string;
 };
-
+const appleLoginSchema = z.object({
+  userToken: z.string(),
+});
 export const APIRoute = createAPIFileRoute("/api/auth/$provider/callback")({
   GET: async ({ request, params }) => {
     const parsed = providerTypeSchema.safeParse(params.provider);
     if (!parsed.success) {
       throw new Error("Provider no supported");
     }
+
     const { searchParams, origin } = new URL(request.url);
     const code = searchParams.get("code");
     const state = searchParams.get("state");
@@ -86,7 +95,11 @@ export const APIRoute = createAPIFileRoute("/api/auth/$provider/callback")({
       }
     }
 
-    const userId = await upsertUserFromProvider(profile, tokens);
+    const userId = await upsertUserFromProvider(profile, {
+      accessToken: tokens.accessToken(),
+      refreshToken: tokens.refreshToken(),
+      accessTokenExpiresAt: tokens.accessTokenExpiresAt(),
+    });
     await session.update({
       userId,
     });
@@ -94,6 +107,50 @@ export const APIRoute = createAPIFileRoute("/api/auth/$provider/callback")({
       await transferPlaylistOwnership(userId, session.id);
     }
     const returnUrl = getCookie(RETURN_URL_KEY) ?? "/";
+    deleteCookie(RETURN_URL_KEY);
+    deleteCookie(STATE_KEY);
+    deleteCookie(VERIFIER_KEY);
+
+    return Response.redirect(returnUrl);
+  },
+  POST: async ({ request, params }) => {
+    const parsed = providerTypeSchema.safeParse(params.provider);
+    if (!parsed.success) {
+      throw new Error("Provider no supported");
+    }
+    if (parsed.data !== "apple") {
+      throw new Error("Provider no supported");
+    }
+    const formData = await request.formData();
+
+    const body = appleLoginSchema.safeParse(Object.fromEntries(formData));
+    if (!body.success) {
+      throw new Error("Invalid request");
+    }
+    const { userToken } = body.data;
+    const session = await getAppSession();
+
+    if (!session) {
+      throw new Error("Session not found");
+    }
+    const userProfile: Profile = {
+      provider: "apple",
+      id: userToken,
+      displayName: "Apple User",
+      avatarUrl: "",
+    };
+    const userId = await upsertUserFromProvider(userProfile, {
+      accessToken: userToken,
+      refreshToken: userToken,
+      accessTokenExpiresAt: new Date(getTokenExpiration() * 1000),
+    });
+    await session.update({
+      userId,
+    });
+    if (session.id) {
+      await transferPlaylistOwnership(userId, session.id);
+    }
+    const returnUrl = getCookie(RETURN_URL_KEY) ?? new URL(request.url).origin;
     deleteCookie(RETURN_URL_KEY);
     deleteCookie(STATE_KEY);
     deleteCookie(VERIFIER_KEY);
@@ -111,7 +168,15 @@ const transferPlaylistOwnership = async (userId: string, guestId: string) => {
     })
     .where(eq(playlistsTable.guestUserId, guestId));
 };
-async function upsertUserFromProvider(profile: Profile, tokens: OAuth2Tokens) {
+type Tokens = {
+  accessToken: string;
+  refreshToken?: string;
+  accessTokenExpiresAt?: Date;
+};
+async function upsertUserFromProvider(
+  profile: Profile,
+  { accessToken, refreshToken, accessTokenExpiresAt }: Tokens
+) {
   let userId: string;
   const existingConns = await db
     .select({ userId: userProviderTable.userId })
@@ -125,13 +190,13 @@ async function upsertUserFromProvider(profile: Profile, tokens: OAuth2Tokens) {
     .limit(1);
   if (existingConns.length > 0) {
     userId = existingConns[0].userId;
-    if (tokens) {
+    if (accessToken) {
       await db
         .update(userProviderTable)
         .set({
-          accessToken: tokens.accessToken(),
-          refreshToken: tokens.refreshToken(),
-          tokenExpiresAt: tokens.accessTokenExpiresAt(),
+          accessToken,
+          refreshToken,
+          tokenExpiresAt: accessTokenExpiresAt,
         })
         .where(
           and(
@@ -153,9 +218,9 @@ async function upsertUserFromProvider(profile: Profile, tokens: OAuth2Tokens) {
         userId: addedUser.id,
         provider: profile.provider,
         providerId: profile.id,
-        accessToken: tokens.accessToken(),
-        refreshToken: tokens.refreshToken(),
-        tokenExpiresAt: tokens.accessTokenExpiresAt(),
+        accessToken,
+        refreshToken,
+        tokenExpiresAt: accessTokenExpiresAt,
       });
       return addedUser.id;
     });

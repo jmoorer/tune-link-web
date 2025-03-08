@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const providerTypeSchema = z.enum(["spotify", "youtube"]);
+export const providerTypeSchema = z.enum(["spotify", "youtube", "apple"]);
 export const generationInputSchema = z.object({
   prompt: z.string().min(3).max(300),
   genres: z.string().array(),
