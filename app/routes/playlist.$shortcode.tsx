@@ -418,6 +418,7 @@ const PlayButton = ({ track }: { track: EnrichedTrack }) => {
 
   return (
     <Button
+      disabled={!track.previewUrl}
       onClick={() => {
         // if (state.isLoading) return;
         if (state.track?.id === track.id) {

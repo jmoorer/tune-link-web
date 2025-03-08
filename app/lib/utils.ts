@@ -62,9 +62,9 @@ export function formatMediaDuration(
         if (minutes === 0) {
           return `${seconds} sec`;
         } else {
-          return seconds === 0
+          return remainingSeconds === 0
             ? `${minutes} min`
-            : `${minutes} min ${seconds} sec`;
+            : `${minutes} min ${remainingSeconds} sec`;
         }
       } else {
         const hourText = hours === 1 ? "1 hr" : `${hours} hr`;

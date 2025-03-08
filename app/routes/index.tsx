@@ -22,10 +22,10 @@ function Home() {
     <Main className=" py-10 space-y-4">
       <div className="w-full max-w-2xl space-y-4 mx-auto">
         <h3 className="text-center text-4xl font-bold">
-          Create your perfect playlist
+          Craft Your Signature Sound
         </h3>
         <p className="text-center text-2xl text-muted-foreground font-bold">
-          Create your perfect playlist
+          Turn your music taste into the perfect playlist
         </p>
         <GenerationForm />
         {recent && recent?.length > 0 && (

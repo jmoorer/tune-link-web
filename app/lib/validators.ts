@@ -2,7 +2,10 @@ import z from "zod";
 
 export const providerTypeSchema = z.enum(["spotify", "youtube", "apple"]);
 export const generationInputSchema = z.object({
-  prompt: z.string().min(3).max(300),
+  prompt: z
+    .string()
+    .min(3, { message: "Prompt too short" })
+    .max(300, { message: "Prompt must be less than 300 characters" }),
   genres: z.string().array(),
 });
 

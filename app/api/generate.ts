@@ -18,9 +18,7 @@ import { playlistsTable } from "~/db/schema";
 import { db } from "~/db";
 import { redirect } from "@tanstack/react-router";
 
-const instuctions = `You are a music expert. Generate a list of 15 songs that match the following prompt.
-                  Each song should include the title and artist name.
-                  Respond with a JSON array of objects, each with 'title' and 'artist' properties.`;
+const instuctions = `You are a passionate music curator with extensive knowledge across all musical genres and eras. Generate a carefully curated playlist of 15 songs that perfectly match the following prompt. Each song should include the title and artist name`;
 
 const modelMap = {
   openai: openai("gpt-4o-mini-2024-07-18"),
@@ -65,15 +63,16 @@ const testModels = async (prompt: string) => {
 export const generatePlaylist = createServerFn({ method: "POST" })
   .validator(safeValidate(generationInputSchema))
   .middleware([sessionMiddleware])
-  .handler(async ({ data: { prompt }, context: { owner } }) => {
+  .handler(async ({ data: { prompt, genres }, context: { owner } }) => {
     // await testModels(prompt);
 
     const generateResult = await timePromise(
       () =>
         generateObject({
-          model: modelMap.gemini,
+          model: modelMap.openai,
           system: instuctions,
-          prompt,
+          prompt: `Theme: ${prompt} ,
+                   Genres: ${genres.join(", ")}`,
           schema: playlistResultSchema,
           mode: "json",
         }),
@@ -82,7 +81,7 @@ export const generatePlaylist = createServerFn({ method: "POST" })
 
     let playlistResult = generateResult.object;
     const enrichedTracks = await timePromise(
-      () => fetchEnrichedTracks(playlistResult.tracks),
+      () => validateTracks(playlistResult.tracks),
       "fetchEnrichedTracks"
     );
 
@@ -94,7 +93,7 @@ export const generatePlaylist = createServerFn({ method: "POST" })
         tracks: enrichedTracks,
         genrationParams: {
           prompt,
-          genres: [],
+          genres,
         },
         userId: owner.userId,
         guestUserId: owner.guestId,
@@ -113,9 +112,7 @@ export const generatePlaylist = createServerFn({ method: "POST" })
     });
   });
 
-export const fetchEnrichedTracks = async (
-  tracks: GeneratedPlaylist["tracks"]
-) => {
+export const validateTracks = async (tracks: GeneratedPlaylist["tracks"]) => {
   const enrichedTracks: EnrichedTrack[] = [];
   const chunks = chunk(tracks, 10);
   for (const chunk of chunks) {
@@ -123,7 +120,7 @@ export const fetchEnrichedTracks = async (
       chunk.map(async (track) => {
         const hits = await itunesSearch(track.title, track.artist);
         const bestMatch = findBestMatch(track, hits);
-        if (bestMatch) {
+        if (bestMatch && bestMatch.similarity > 0.8) {
           return {
             ...track,
             coverArt: hits[0].artworkUrl100,
@@ -131,16 +128,11 @@ export const fetchEnrichedTracks = async (
             album: hits[0].collectionName,
           };
         }
-
-        return {
-          ...track,
-          coverArt: "https://placehold.co/100x100",
-          previewUrl: undefined,
-          album: undefined,
-        };
+        console.log("No match found for", track);
+        return null;
       })
     );
-    enrichedTracks.push(...tracks);
+    enrichedTracks.push(...tracks.filter((track) => track !== null));
   }
 
   return enrichedTracks;

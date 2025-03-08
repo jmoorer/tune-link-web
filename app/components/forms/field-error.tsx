@@ -1,21 +1,15 @@
-import { ValidationError } from "@tanstack/react-form";
+import { AnyFieldApi, ValidationError } from "@tanstack/react-form";
 import React from "react";
 import { cn } from "~/lib/utils";
 
-export const FieldError = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement> & {
-    errors: string[] | ValidationError[];
-  }
->(({ className, children, errors, ...props }, ref) => {
-  if (!errors || errors.length === 0) null;
+export function FieldError({ field }: { field: AnyFieldApi }) {
   return (
-    <p
-      ref={ref}
-      className={cn("text-sm font-medium text-destructive", className)}
-      {...props}
-    >
-      {Array.isArray(errors) ? errors.join(",") : errors}
-    </p>
+    <>
+      {field.state.meta.isTouched && field.state.meta.errors.length ? (
+        <em className="text-sm font-medium text-destructive">
+          {field.state.meta.errors.map((err) => err.message).join(",")}
+        </em>
+      ) : null}
+    </>
   );
-});
+}

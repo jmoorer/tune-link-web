@@ -29,7 +29,12 @@ const AppleLoginForm = () => {
   const handleAuthorize = async () => {
     console.log("developerToken", MusicKit);
     const music = MusicKit.getInstance();
-    await music.authorize();
+    try {
+      await music.authorize();
+    } catch (err) {
+      console.error("Error authorizing", err);
+      return;
+    }
     const userToken = music.musicUserToken;
     // await music.unauthorize();
     // console.log("userToken", userToken, "music.api", music.api);

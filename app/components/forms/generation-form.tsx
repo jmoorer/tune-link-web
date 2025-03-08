@@ -10,12 +10,14 @@ import { generatePlaylist } from "~/api/generate";
 import { FieldError } from "./field-error";
 import { useMutation } from "@tanstack/react-query";
 import { GenerationParams } from "~/lib/types";
+import { useServerFn } from "@tanstack/start";
 
 const genreIndex = indexBy(genreList, (g) => g.id);
 
 const GenerationForm = () => {
+  const generate = useServerFn(generatePlaylist);
   const generatePlaylistMutation = useMutation({
-    mutationFn: (data: GenerationParams) => generatePlaylist({ data }),
+    mutationFn: (data: GenerationParams) => generate({ data }),
     onSuccess: () => {
       form.reset();
     },
@@ -24,7 +26,7 @@ const GenerationForm = () => {
   const { Field, Subscribe, handleSubmit, ...form } = useForm({
     defaultValues: {
       prompt: "",
-      genres: [],
+      genres: [] as string[],
     },
     validators: {
       onSubmit: generationInputSchema,
@@ -53,7 +55,7 @@ const GenerationForm = () => {
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
                 />
-                <FieldError errors={field.state.meta.errors} />
+                <FieldError field={field} />
               </>
             )}
           />
