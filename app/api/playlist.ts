@@ -16,6 +16,7 @@ import { spotifyAuth, SpotifyService } from "~/lib/integrations/spotify";
 import { playlistUpdateSchema } from "~/lib/validators";
 import { youtubeAuth, YoutubeService } from "~/lib/integrations/youtube";
 import { chunk } from "~/lib/utils";
+import { AppleMusicService } from "~/lib/integrations/apple";
 
 export const getRecentPlaylists = createServerFn()
   .middleware([sessionMiddleware])
@@ -154,6 +155,18 @@ export const transferPlaylist = createServerFn()
       case "youtube": {
         musicService = new YoutubeService(userProvider.accessToken);
 
+        break;
+      }
+      case "apple": {
+        musicService = new AppleMusicService(userProvider.accessToken);
+        // const matchResults = await musicService.findMatchingTracks(
+        //   playlist.tracks.map((track) => ({
+        //     title: track.title,
+        //     artist: track.artist,
+        //   }))
+        // );
+        // console.log(matchResults);
+        // return;
         break;
       }
       default: {

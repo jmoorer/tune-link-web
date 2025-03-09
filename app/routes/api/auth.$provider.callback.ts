@@ -24,6 +24,8 @@ import {
   appleMusicFetcher,
   generateDeveloperToken,
   getTokenExpiration,
+  StationResponse,
+  getPersonalStation,
 } from "~/lib/integrations/apple";
 type Profile = {
   id: string;
@@ -127,16 +129,34 @@ export const APIRoute = createAPIFileRoute("/api/auth/$provider/callback")({
     if (!body.success) {
       throw new Error("Invalid request");
     }
+
     const { userToken } = body.data;
     const session = await getAppSession();
 
     if (!session) {
       throw new Error("Session not found");
     }
+
+    const station = await getPersonalStation(userToken);
+
+    console.log("result", station);
+    if (!station) {
+      throw new Error("No Apple Music account found");
+    }
+    function extractUserName(input: string) {
+      // Check if the input string contains an apostrophe followed by " Station"
+      if (input.includes("'s Station")) {
+        // Extract everything before "'s Station"
+        return input.split("'s Station")[0];
+      } else {
+        // Return original input if it doesn't matc"Name not found in expected format";h the expected format
+        return "Apple User";
+      }
+    }
     const userProfile: Profile = {
       provider: "apple",
-      id: userToken,
-      displayName: "Apple User",
+      id: station.id,
+      displayName: extractUserName(station.attributes.name),
       avatarUrl: "",
     };
     const userId = await upsertUserFromProvider(userProfile, {

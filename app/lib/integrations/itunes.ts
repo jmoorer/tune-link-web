@@ -3,6 +3,7 @@ import { normalizeString } from "../utils/stringUtils";
 import { calculateSimilarity } from "../utils/stringUtils";
 
 export interface ITunesSearchResult {
+  trackId: number;
   artistName: string;
   trackName: string;
   previewUrl: string;

@@ -43,6 +43,7 @@ export const createFetcher = (baseUrl: string, accessToken?: string) => {
       });
 
       if (!response.ok) {
+        const text = await response.text();
         console.log(
           "failed response:",
           JSON.stringify(
@@ -50,8 +51,7 @@ export const createFetcher = (baseUrl: string, accessToken?: string) => {
               url,
               method,
               body,
-              headers: options?.headers,
-              response: await response.text(),
+              response: text,
             },
             null,
             2
@@ -62,9 +62,18 @@ export const createFetcher = (baseUrl: string, accessToken?: string) => {
           response.status
         );
       }
-      const data = await response.json();
+      const text = await response.text();
+      console.log("response:", text);
+      try {
+        return JSON.parse(text) as T;
+      } catch (parseError) {
+        console.log("Raw response:", text);
+        return {} as T;
+      }
 
-      return data as T;
+      // const data = await response.json();
+
+      // return data as T;
     } catch (error) {
       console.error(error);
 
